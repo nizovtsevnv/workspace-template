@@ -89,20 +89,19 @@ ifneq ($(filter $(FIRST_GOAL),$(MODULE_NAMES)),)
 	@$(call run-script,.template/scripts/module/command.sh,$(FIRST_GOAL) $(SECOND_GOAL) $(REST_GOALS))
   endif
 
-  # Подавить ошибки для остальных аргументов (кроме зарезервированных команд шаблона)
-  # Фильтруем зарезервированные команды: init, help, module, template
-  FILTERED_SECOND := $(filter-out init help module template,$(SECOND_GOAL))
-  FILTERED_REST := $(filter-out init help module template,$(REST_GOALS))
-
-  ifneq ($(FILTERED_SECOND),)
-    .PHONY: $(FILTERED_SECOND)
-    $(FILTERED_SECOND):
+  # Подавить ошибки для остальных аргументов
+  # Создаем stub targets для всех аргументов после имени модуля,
+  # чтобы Make не пытался выполнить их как отдельные команды
+  # (например, при `make site init` не должен выполняться корневой init)
+  ifneq ($(SECOND_GOAL),)
+    .PHONY: $(SECOND_GOAL)
+    $(SECOND_GOAL):
 	@:
   endif
 
-  ifneq ($(FILTERED_REST),)
-    .PHONY: $(FILTERED_REST)
-    $(FILTERED_REST):
+  ifneq ($(REST_GOALS),)
+    .PHONY: $(REST_GOALS)
+    $(REST_GOALS):
 	@:
   endif
 endif

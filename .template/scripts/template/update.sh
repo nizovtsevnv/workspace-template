@@ -144,27 +144,35 @@ if [ "$STATUS" = "инициализирован" ]; then
 	commit_msg=$(ask_input_with_default "$default_msg" "Сообщение коммита:")
 
 	if [ -n "$commit_msg" ]; then
-		tmpfile=$(mktemp)
-		# shellcheck disable=SC2064
-		trap "rm -f $tmpfile" EXIT INT TERM
-		if git commit -m "$commit_msg" > "$tmpfile" 2>&1; then
-			commit_hash=$(git rev-parse --short=7 HEAD)
-			printf "\n"
-			log_success "Обновление завершено!"
-			printf "  Новая версия: %s (%s)\n" "$latest_date" "$latest_commit"
-			printf "  Коммит создан: %s\n" "$commit_hash"
+		# Проверка наличия staged changes перед коммитом
+		if ! git diff --cached --quiet; then
+			tmpfile=$(mktemp)
+			# shellcheck disable=SC2064
+			trap "rm -f $tmpfile" EXIT INT TERM
+			if git commit -m "$commit_msg" > "$tmpfile" 2>&1; then
+				commit_hash=$(git rev-parse --short=7 HEAD)
+				printf "\n"
+				log_success "Обновление завершено!"
+				printf "  Новая версия: %s (%s)\n" "$latest_date" "$latest_commit"
+				printf "  Коммит создан: %s\n" "$commit_hash"
+			else
+				printf "\n"
+				log_error "Ошибка при создании коммита:"
+				cat "$tmpfile" >&2
+				printf "\n"
+				log_info "Выполните 'git commit' вручную"
+			fi
+			rm -f "$tmpfile"
+			trap - EXIT INT TERM
 		else
 			printf "\n"
-			log_error "Ошибка при создании коммита:"
-			cat "$tmpfile" >&2
-			printf "\n"
-			log_info "Выполните 'git commit' вручную"
+			log_warning "Нет изменений для коммита"
+			printf "  Staging area пуст\n"
+			printf "  Проверьте, что изменения были корректно добавлены\n"
 		fi
-		rm -f "$tmpfile"
-		trap - EXIT INT TERM
 	else
 		log_warning "Пустое сообщение - коммит пропущен"
-		printf "  Выполните 'git commit' вручную\n"
+		printf "  Выполните 'git commit' когда будете готовы\n"
 	fi
 
 else

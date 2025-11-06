@@ -310,7 +310,7 @@ ask_yes_no() {
 ask_input() {
 	if [ -n "$2" ]; then
 		# Режим с дефолтным значением - показываем в квадратных скобках
-		printf "${COLOR_INFO}➜ ${COLOR_RESET}%s ${COLOR_DIM}[%s]${COLOR_RESET}: " "$1" "$2" >&2
+		printf "${COLOR_INFO}➜ ${COLOR_RESET}%s [${COLOR_DIM}%s${COLOR_RESET}]: " "$1" "$2" >&2
 		read -r input_value </dev/tty
 		if [ -z "$input_value" ]; then
 			echo "$2"

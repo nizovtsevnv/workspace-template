@@ -51,6 +51,13 @@ MODULE_PATH="${MODULES_DIR:-modules}/$MODULE_NAME"
 # Проверка существования модуля
 if [ ! -d "$MODULE_PATH" ]; then
 	log_error "Модуль '$MODULE_NAME' не найден в $MODULE_PATH"
+
+	# Проверяем, является ли это git submodule
+	if git config --file .gitmodules --get "submodule.$MODULE_PATH.path" >/dev/null 2>&1; then
+		printf "\n"
+		log_info "Это git submodule, который не инициализирован"
+		printf "  Выполните: ${COLOR_SUCCESS}git submodule update --init $MODULE_PATH${COLOR_RESET}\n"
+	fi
 	exit 1
 fi
 

@@ -89,10 +89,20 @@ ifneq ($(filter $(FIRST_GOAL),$(MODULE_NAMES)),)
 	@$(call run-script,.template/scripts/module/command.sh,$(FIRST_GOAL) $(SECOND_GOAL) $(REST_GOALS))
   endif
 
-  # Подавить ошибки для остальных аргументов
-  .PHONY: $(SECOND_GOAL) $(REST_GOALS)
-  $(SECOND_GOAL):
+  # Подавить ошибки для остальных аргументов (кроме зарезервированных команд шаблона)
+  # Фильтруем зарезервированные команды: init, help, module, template
+  FILTERED_SECOND := $(filter-out init help module template,$(SECOND_GOAL))
+  FILTERED_REST := $(filter-out init help module template,$(REST_GOALS))
+
+  ifneq ($(FILTERED_SECOND),)
+    .PHONY: $(FILTERED_SECOND)
+    $(FILTERED_SECOND):
 	@:
-  $(REST_GOALS):
+  endif
+
+  ifneq ($(FILTERED_REST),)
+    .PHONY: $(FILTERED_REST)
+    $(FILTERED_REST):
 	@:
+  endif
 endif

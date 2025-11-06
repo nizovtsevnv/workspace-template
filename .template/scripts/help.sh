@@ -27,8 +27,15 @@ printf "\n"
 
 log_info "Среда разработки"
 
-# Формируем данные для таблицы
-commands_data="make init<COL>Инициализация проекта из шаблона<ROW>make module create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make module import<COL>Импортировать модуль из git репозитория<ROW>make template test<COL>Запустить автотесты шаблона<ROW>make template update<COL>Обновить версию шаблона"
+# Проверяем статус инициализации
+check_project_init_status
+
+# Формируем данные для таблицы в зависимости от статуса инициализации
+if [ "$STATUS" = "не инициализирован" ]; then
+	commands_data="make init<COL>Инициализация проекта из шаблона<ROW>make module create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make module import<COL>Импортировать модуль из git репозитория<ROW>make template test<COL>Запустить автотесты шаблона<ROW>make template update<COL>Обновить версию шаблона"
+else
+	commands_data="make module create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make module import<COL>Импортировать модуль из git репозитория<ROW>make template test<COL>Запустить автотесты шаблона<ROW>make template update<COL>Обновить версию шаблона"
+fi
 
 printf "%s\n" "$commands_data" | print_table 24
 
@@ -82,7 +89,6 @@ printf "\n"
 # Подсказка для неинициализированного проекта
 # ===================================
 
-check_project_init_status
 if [ "$STATUS" = "не инициализирован" ]; then
 	log_info "Начало работы с проектом"
 	printf "  1. Инициализируйте проект: ${COLOR_SUCCESS}make init${COLOR_RESET}\n"

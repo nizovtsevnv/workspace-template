@@ -141,7 +141,7 @@ if [ "$STATUS" = "инициализирован" ]; then
 
 	# Запрос сообщения коммита
 	default_msg="chore: update template to $latest_commit ($latest_date)"
-	commit_msg=$(ask_input_with_default "$default_msg" "Сообщение коммита:")
+	commit_msg=$(ask_input "Сообщение коммита:" "$default_msg")
 
 	if [ -n "$commit_msg" ]; then
 		# Проверка наличия staged changes перед коммитом

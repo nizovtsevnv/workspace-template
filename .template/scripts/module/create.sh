@@ -107,7 +107,7 @@ fi
 if [ -z "$MODULE_NAME" ]; then
 	log_info "Шаг 3/3: Введите имя модуля (буквы, цифры, дефис, подчеркивание)"
 	printf "\n"
-	name=$(ask_input_with_default "example-module" "Имя модуля")
+	name=$(ask_input "Имя модуля" "example-module")
 	if [ -z "$name" ]; then
 		log_error "Имя не может быть пустым"
 		exit 1

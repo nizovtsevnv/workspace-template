@@ -59,7 +59,7 @@ if [ -z "$MODULE_NAME" ]; then
 	# Предлагаем имя из URL (последняя часть пути без .git)
 	suggested_name=$(basename "$git_url" .git)
 
-	name=$(ask_input_with_default "$suggested_name" "Имя модуля")
+	name=$(ask_input "Имя модуля" "$suggested_name")
 
 	if [ -z "$name" ]; then
 		log_error "Имя не может быть пустым"
@@ -76,7 +76,7 @@ if [ -z "$MODULE_GIT_BRANCH" ] || [ "$MODULE_GIT_BRANCH" = "main" ]; then
 	log_info "Шаг 3/3: Выберите ветку"
 	printf "\n"
 
-	branch=$(ask_input_with_default "main" "Ветка")
+	branch=$(ask_input "Ветка" "main")
 
 	if [ -z "$branch" ]; then
 		branch="main"
@@ -120,7 +120,6 @@ if show_spinner "Добавление git submodule" \
 	show_spinner "Инициализация submodule" \
 		git submodule update --init "$module_full_path"
 
-	printf "\n"
 	log_success "Модуль '$name' успешно импортирован"
 	printf "\n"
 

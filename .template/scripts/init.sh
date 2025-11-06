@@ -66,7 +66,7 @@ if [ "$init_mode" = "Новый репозиторий (локально)" ]; th
 	origin_configured=false
 else
 	printf "\n"
-	origin_url=$(ask_input_with_default "" "URL удалённого репозитория") || exit 0
+	origin_url=$(ask_input "URL удалённого репозитория" "") || exit 0
 	if [ -z "$origin_url" ]; then
 		log_error "URL удалённого репозитория обязателен"
 		exit 1

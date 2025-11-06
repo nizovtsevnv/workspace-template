@@ -299,25 +299,29 @@ ask_yes_no() {
 }
 
 # Запросить текстовый ввод от пользователя
-# Параметры: $1 - placeholder, $2 - prompt text
-# Возвращает: введенный текст
-# Использование: name=$(ask_input "my-module" "Введите имя")
+# Параметры:
+#   $1 - текст запроса (prompt) или placeholder/default (если $2 не указан)
+#   $2 - (опционально) default значение - если указано и ввод пустой, вернет default
+# Возвращает: введенный текст (или default, если указан $2 и ввод пустой)
+# Примеры:
+#   url=$(ask_input "Git URL (ssh или https)")                    # Простой ввод, placeholder серым
+#   url=$(ask_input "URL удалённого репозитория" "")              # С пустым default
+#   name=$(ask_input "Имя модуля" "example-module")               # С дефолтом в квадратных скобках
 ask_input() {
-	printf "${COLOR_INFO}➜ ${COLOR_RESET}%s ${COLOR_WARNING}[%s]${COLOR_RESET}: " "$2" "$1" >&2
-	read -r input_value </dev/tty
-	printf "%s" "$input_value"
-}
-
-# Запросить текстовый ввод с дефолтным значением
-# Параметры: $1 - default value, $2 - prompt text
-# Возвращает: введенный текст или default
-# Использование: url=$(ask_input_with_default "https://github.com/user/repo" "Введите URL")
-ask_input_with_default() {
-	printf "${COLOR_INFO}➜ ${COLOR_RESET}%s ${COLOR_DIM}[%s]${COLOR_RESET}: " "$2" "$1" >&2
-	read -r input_value </dev/tty
-	if [ -z "$input_value" ]; then
-		echo "$1"
+	if [ -n "$2" ]; then
+		# Режим с дефолтным значением - показываем в квадратных скобках
+		printf "${COLOR_INFO}➜ ${COLOR_RESET}%s ${COLOR_DIM}[%s]${COLOR_RESET}: " "$1" "$2" >&2
+		read -r input_value </dev/tty
+		if [ -z "$input_value" ]; then
+			echo "$2"
+		else
+			echo "$input_value"
+		fi
 	else
-		echo "$input_value"
+		# Режим без дефолта - показываем placeholder серым
+		printf "${COLOR_INFO}➜ ${COLOR_RESET}${COLOR_DIM}%s${COLOR_RESET}: " "$1" >&2
+		read -r input_value </dev/tty
+		printf "%s" "$input_value"
 	fi
 }
+

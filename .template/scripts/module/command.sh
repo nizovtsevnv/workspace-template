@@ -115,9 +115,13 @@ echo "$PRIORITY_CHECKS" | while read -r check_line; do
 		# Определяем основную технологию (берем первую из списка)
 		primary_tech=$(echo "$MODULE_TECH" | awk '{print $1}')
 
+		# Получаем абсолютный путь к модулю для stack runner
+		# (так как subshell в stack runner не наследует cd из родительского процесса)
+		MODULE_PATH_ABS="$WORKSPACE_ROOT/$MODULE_PATH"
+
 		# Выполняем команду через stack runner с fallback в контейнер
 		# shellcheck disable=SC2086,SC2154
-		run_stack_command "$primary_tech" "$MODULE_PATH" "$full_cmd $MODULE_ARGS"
+		run_stack_command "$primary_tech" "$MODULE_PATH_ABS" "$full_cmd $MODULE_ARGS"
 		exit_code=$?
 		echo "$exit_code" > "$exit_file"
 		exit $exit_code

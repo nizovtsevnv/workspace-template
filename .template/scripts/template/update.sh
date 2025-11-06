@@ -155,6 +155,13 @@ if [ "$STATUS" = "инициализирован" ]; then
 				log_success "Обновление завершено!"
 				printf "  Новая версия: %s (%s)\n" "$latest_date" "$latest_commit"
 				printf "  Коммит создан: %s\n" "$commit_hash"
+
+				# Проверка оставшихся изменений
+				if ! git diff --cached --quiet; then
+					printf "\n"
+					log_warning "Внимание: в staging area остались незакоммиченные изменения"
+					git diff --cached --name-only
+				fi
 			else
 				printf "\n"
 				log_error "Ошибка при создании коммита:"

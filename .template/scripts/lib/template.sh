@@ -64,7 +64,7 @@ remove_template_artifacts() {
 	load_lib "ui" "log_success"
 
 	if [ -d ".github" ]; then
-		rm -rf .github
+		git rm -rf .github 2>/dev/null || rm -rf .github
 		log_success "Удалена директория .github/"
 	fi
 }

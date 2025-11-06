@@ -65,8 +65,8 @@ if [ "$STATUS" = "инициализирован" ]; then
 	latest_commit=$(git rev-parse --short=7 template/main 2>/dev/null || echo "unknown")
 	latest_date=$(get_template_commit_date "template/main")
 
-	printf "Текущая версия:   %s (%s)\n" "$current_commit" "$current_date"
-	printf "Последняя версия: %s (%s)\n" "$latest_commit" "$latest_date"
+	printf "Текущая версия:   %s (%s)\n" "$current_date" "$current_commit"
+	printf "Последняя версия: %s (%s)\n" "$latest_date" "$latest_commit"
 	printf "\n"
 
 	# Проверка: если уже на последнем коммите
@@ -134,7 +134,7 @@ if [ "$STATUS" = "инициализирован" ]; then
 	if ! ask_yes_no "Создать коммит обновления шаблона?"; then
 		printf "\n"
 		log_info "Обновление завершено без коммита"
-		printf "  Новая версия: %s (%s)\n" "$latest_commit" "$latest_date"
+		printf "  Новая версия: %s (%s)\n" "$latest_date" "$latest_commit"
 		printf "  Выполните 'git commit' когда будете готовы\n"
 		exit 0
 	fi
@@ -148,10 +148,11 @@ if [ "$STATUS" = "инициализирован" ]; then
 		# shellcheck disable=SC2064
 		trap "rm -f $tmpfile" EXIT INT TERM
 		if git commit -m "$commit_msg" > "$tmpfile" 2>&1; then
+			commit_hash=$(git rev-parse --short=7 HEAD)
 			printf "\n"
 			log_success "Обновление завершено!"
-			printf "  Новая версия: %s (%s)\n" "$latest_commit" "$latest_date"
-			printf "  Коммит создан\n"
+			printf "  Новая версия: %s (%s)\n" "$latest_date" "$latest_commit"
+			printf "  Коммит создан: %s\n" "$commit_hash"
 		else
 			printf "\n"
 			log_error "Ошибка при создании коммита:"

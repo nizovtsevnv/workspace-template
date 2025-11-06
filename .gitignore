@@ -150,4 +150,3 @@ modules/*/
 .terraform/
 *.tfstate
 *.tfstate.backup
-.template-commit

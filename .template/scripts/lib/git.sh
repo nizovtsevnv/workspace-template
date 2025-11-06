@@ -36,7 +36,7 @@ get_template_commit_date() {
 # Использование: save_template_commit "abc1234"
 save_template_commit() {
 	echo "$1" > .template-commit
-	git add -f .template-commit 2>/dev/null || true
+	git add .template-commit 2>/dev/null || true
 }
 
 # Показать changelog между двумя refs (коммитами, ветками, тегами)

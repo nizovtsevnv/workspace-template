@@ -58,29 +58,29 @@ show_module_help() {
 		git_url=$(get_submodule_url "$MODULE_PATH")
 		git_branch=$(get_submodule_branch "$MODULE_PATH")
 		printf "Версия<COL>%s<ROW>Технический стек<COL>%s<ROW>CI/CD<COL>%s<ROW>Тип модуля<COL>%s<ROW>Git репозиторий<COL>%s (branch: %s)\n" \
-			"$version" "$tech_display" "$cicd" "$module_type" "$git_url" "$git_branch" | print_table 30
+			"$version" "$tech_display" "$cicd" "$module_type" "$git_url" "$git_branch" | print_table 40
 	else
 		printf "Версия<COL>%s<ROW>Технический стек<COL>%s<ROW>CI/CD<COL>%s<ROW>Тип модуля<COL>%s\n" \
-			"$version" "$tech_display" "$cicd" "$module_type" | print_table 30
+			"$version" "$tech_display" "$cicd" "$module_type" | print_table 40
 	fi
 	printf "\n"
 
 	# Использование
 	log_info "Использование:"
-	printf "make $MODULE_NAME КОМАНДА [АРГУМЕНТЫ]<COL>Выполнение любых команд в папке модуля\n" | print_table 30
+	printf "make $MODULE_NAME КОМАНДА [АРГУМЕНТЫ]<COL>Выполнение любых команд в папке модуля\n" | print_table 40
 
 	# Git команды (если модуль - git submodule)
 	if is_git_submodule "$MODULE_PATH"; then
 		printf "\n"
 		log_info "Git команды:"
-		printf "make %s pull<COL>Синхронизация с удаленным репозиторием\n" "$MODULE_NAME" | print_table 30
-		printf "make %s push<COL>Отправка изменений\n" "$MODULE_NAME" | print_table 30
-		printf "make %s git <cmd><COL>Выполнить git команду (status, log, checkout...)\n" "$MODULE_NAME" | print_table 30
-		printf "make %s convert<COL>Конвертировать в локальный модуль\n" "$MODULE_NAME" | print_table 30
+		printf "make %s pull<COL>Синхронизация с удаленным репозиторием\n" "$MODULE_NAME" | print_table 40
+		printf "make %s push<COL>Отправка изменений\n" "$MODULE_NAME" | print_table 40
+		printf "make %s git <cmd><COL>Выполнить git команду (status, log, checkout...)\n" "$MODULE_NAME" | print_table 40
+		printf "make %s convert<COL>Конвертировать в локальный модуль\n" "$MODULE_NAME" | print_table 40
 	else
 		printf "\n"
 		log_info "Конвертация:"
-		printf "make %s convert URL=...<COL>Конвертировать в git submodule\n" "$MODULE_NAME" | print_table 30
+		printf "make %s convert URL=...<COL>Конвертировать в git submodule\n" "$MODULE_NAME" | print_table 40
 	fi
 
 	# Показать секции команд в зависимости от стека
@@ -103,7 +103,7 @@ show_module_help() {
 						printf "make $MODULE_NAME %s<COL>\n" "$pm"
 						echo "$pm" >> "$used_commands"
 					fi
-				done | print_table 30
+				done | print_table 40
 
 			# 3. Команды package.json
 			pkg_scripts=$(get_package_json_scripts "$MODULE_PATH")
@@ -115,7 +115,7 @@ show_module_help() {
 						printf "make $MODULE_NAME %s<COL>%s\n" "$name" "$command"
 						echo "$name" >> "$used_commands"
 					fi
-				done | print_table 30
+				done | print_table 40
 			fi
 
 			# 4. Команды npx
@@ -128,7 +128,7 @@ show_module_help() {
 						printf "make $MODULE_NAME %s<COL>\n" "$cmd"
 						echo "$cmd" >> "$used_commands"
 					fi
-				done | print_table 30
+				done | print_table 40
 			fi
 				;;
 
@@ -142,7 +142,7 @@ show_module_help() {
 				if ! grep -q "^composer$" "$used_commands" 2>/dev/null; then
 					printf "make $MODULE_NAME composer<COL>\n"
 					echo "composer" >> "$used_commands"
-				fi | print_table 30
+				fi | print_table 40
 
 				# 3. Команды composer.json
 				composer_scripts=$(get_composer_json_scripts "$MODULE_PATH")
@@ -154,7 +154,7 @@ show_module_help() {
 							printf "make $MODULE_NAME %s<COL>%s\n" "$name" "$command"
 							echo "$name" >> "$used_commands"
 						fi
-					done | print_table 30
+					done | print_table 40
 				fi
 
 				# 4. Команды vendor/bin
@@ -167,7 +167,7 @@ show_module_help() {
 							printf "make $MODULE_NAME %s<COL>\n" "$cmd"
 							echo "$cmd" >> "$used_commands"
 						fi
-					done | print_table 30
+					done | print_table 40
 				fi
 				;;
 
@@ -183,7 +183,7 @@ show_module_help() {
 						printf "make $MODULE_NAME %s<COL>\n" "$pm"
 						echo "$pm" >> "$used_commands"
 					fi
-				done | print_table 30
+				done | print_table 40
 
 				# 3. Команды pyproject.toml
 				pyproject_scripts=$(get_pyproject_scripts "$MODULE_PATH")
@@ -195,7 +195,7 @@ show_module_help() {
 							printf "make $MODULE_NAME %s<COL>%s\n" "$name" "$command"
 							echo "$name" >> "$used_commands"
 						fi
-					done | print_table 30
+					done | print_table 40
 				fi
 				;;
 
@@ -209,7 +209,7 @@ show_module_help() {
 				if ! grep -q "^cargo$" "$used_commands" 2>/dev/null; then
 					printf "make $MODULE_NAME cargo<COL>\n"
 					echo "cargo" >> "$used_commands"
-				fi | print_table 30
+				fi | print_table 40
 
 				# 3. Бинарные targets
 				cargo_bins=$(get_cargo_bin_targets "$MODULE_PATH")
@@ -221,7 +221,7 @@ show_module_help() {
 							printf "make $MODULE_NAME %s<COL>\n" "$bin"
 							echo "$bin" >> "$used_commands"
 						fi
-					done | print_table 30
+					done | print_table 40
 				fi
 				;;
 		esac

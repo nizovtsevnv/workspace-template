@@ -42,7 +42,7 @@ if [ -z "$template_url" ]; then
 	exit 1
 fi
 
-log_info "Версия шаблона: $current_commit ($current_date)"
+log_info "Версия шаблона: $current_date ($current_commit)"
 
 # ===========================================
 # СЕКЦИЯ 1: Подготовка Git репозитория
@@ -173,5 +173,5 @@ log_success "Проект успешно инициализирован!"
 printf "\n"
 log_info "Следующие шаги:"
 printf "  1. Настройте README.md\n"
-printf "  2. Создайте модули через 'make module'\n"
+printf "  2. Создайте модули через 'make module create'\n"
 printf "  3. Начните разработку\n"

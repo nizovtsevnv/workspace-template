@@ -194,5 +194,5 @@ else
 	template_date=$(get_template_commit_date HEAD)
 	printf "\n"
 	log_success "Обновление завершено!"
-	printf "  Версия шаблона: %s (%s)\n" "$template_commit" "$template_date"
+	printf "  Версия шаблона: %s (%s)\n" "$template_date" "$template_commit"
 fi

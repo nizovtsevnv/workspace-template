@@ -19,16 +19,16 @@ make init
 
 ```bash
 # Создать новый модуль (интерактивно)
-make module
+make module create
 # → Выбор стека (C, Zig, Node.js, PHP, Python, Rust)
 # → Выбор типа проекта (bun, npm, composer, poetry, cargo, etc.)
 # → Ввод имени модуля
 # → Автоматическая инициализация проекта
 
 # Или с параметрами (для автоматизации)
-make module MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
-make module MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=my-lib
-make module MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool
+make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
+make module create MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=my-lib
+make module create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool
 ```
 
 **Поддерживаемые типы модулей:**
@@ -159,7 +159,7 @@ systemctl --user enable --now podman.socket
 ## 💡 Типичный workflow разработчика
 
 1. **Скачать шаблон** → клонировать репозиторий
-2. **Создать модули** → `make module` для каждого компонента проекта
+2. **Создать модули** → `make module create` для каждого компонента проекта
 3. **Разработка** → код, документация, автоматизация (на хосте)
 4. **Коммиты** → работа с Git как обычно
 5. **Push** → отправить в ваш репозиторий проекта
@@ -206,7 +206,7 @@ podman build -t devcontainer-nodejs -f .template/dockerfiles/nodejs.Dockerfile .
 
 # Или удалить и пересобрать автоматически
 podman rmi devcontainer-nodejs
-make module MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=test
+make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=test
 ```
 
 ### Проблемы с правами доступа
@@ -240,7 +240,7 @@ make template test           # Тесты генераторов
 
 # Создание модулей
 make module                # Создать новый модуль (интерактивно)
-make module MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
+make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
 
 # Команды модулей
 make <модуль>              # Справка по модулю

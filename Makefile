@@ -27,7 +27,13 @@ include .template/makefiles/modules.mk
 include .template/makefiles/template.mk
 include .template/makefiles/help.mk
 
-# Универсальное правило для подавления ошибок о несуществующих targets
-# Позволяет передавать произвольные аргументы в команды модулей
+# Универсальное правило для обработки неизвестных команд
+# Проверяет, является ли команда валидной, иначе показывает ошибку
 %:
-	@:
+	@if [ "$(firstword $(MAKECMDGOALS))" != "module" ] && \
+	    [ "$(firstword $(MAKECMDGOALS))" != "template" ] && \
+	    ! [ -d "modules/$(firstword $(MAKECMDGOALS))" ]; then \
+		printf "\033[0;31m✗\033[0m Неизвестная команда: make $(MAKECMDGOALS)\n"; \
+		printf "\033[0;36mℹ\033[0m Используйте 'make' или 'make help' для просмотра доступных команд\n"; \
+		exit 1; \
+	fi

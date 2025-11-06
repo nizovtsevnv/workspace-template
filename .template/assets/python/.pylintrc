@@ -1,0 +1,146 @@
+# ===================================
+# Pylint конфигурация
+# ===================================
+# Статический анализатор кода Python
+# Для использования создайте symlink в модуле:
+#   ln -s ../../config/python/.pylintrc .pylintrc
+
+[MASTER]
+# Файлы и директории для игнорирования
+ignore=.git,__pycache__,.venv,venv,env,.mypy_cache,.pytest_cache,build,dist,node_modules
+
+# Использовать несколько процессов для ускорения проверки
+jobs=0
+
+# Расширения Python файлов
+extension-pkg-whitelist=
+
+[MESSAGES CONTROL]
+# Отключенные проверки
+disable=
+    # Форматирование (обрабатывается black)
+    C0103,  # invalid-name
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    # Слишком строгие правила
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    # Конфликты с другими инструментами
+    W0511,  # fixme (TODO comments)
+
+# Включенные проверки по категориям:
+# C - convention (стиль кода)
+# R - refactor (рефакторинг)
+# W - warning (предупреждения)
+# E - error (ошибки)
+# F - fatal (критические ошибки)
+
+[REPORTS]
+# Формат вывода отчёта
+output-format=colorized
+
+# Показать статистику
+reports=yes
+
+# Оценка кода (0-10)
+score=yes
+
+[FORMAT]
+# Максимальная длина строки (совместимо с black)
+max-line-length=100
+
+# Количество пробелов для отступа
+indent-string='    '
+
+# Максимальное количество строк в модуле
+max-module-lines=1000
+
+[BASIC]
+# Регулярные выражения для имён
+# Переменные
+variable-rgx=[a-z_][a-z0-9_]{0,30}$
+
+# Константы
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+
+# Функции
+function-rgx=[a-z_][a-z0-9_]{2,40}$
+
+# Методы
+method-rgx=[a-z_][a-z0-9_]{2,40}$
+
+# Классы
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+
+# Атрибуты
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Аргументы
+argument-rgx=[a-z_][a-z0-9_]{0,30}$
+
+# Минимальная длина имени переменной
+variable-name-hint=[a-z_][a-z0-9_]{2,30}$
+
+[DESIGN]
+# Максимальное количество аргументов функции
+max-args=7
+
+# Максимальное количество локальных переменных
+max-locals=15
+
+# Максимальное количество return statements
+max-returns=6
+
+# Максимальное количество веток (if/elif/else)
+max-branches=12
+
+# Максимальное количество statements в функции
+max-statements=50
+
+# Максимальное количество родительских классов
+max-parents=7
+
+# Максимальное количество атрибутов класса
+max-attributes=10
+
+# Минимальное количество публичных методов класса
+min-public-methods=1
+
+# Максимальное количество публичных методов класса
+max-public-methods=20
+
+[SIMILARITIES]
+# Минимальное количество строк для обнаружения дублирования
+min-similarity-lines=4
+
+# Игнорировать комментарии при проверке дублирования
+ignore-comments=yes
+
+# Игнорировать docstrings при проверке дублирования
+ignore-docstrings=yes
+
+# Игнорировать импорты при проверке дублирования
+ignore-imports=yes
+
+[TYPECHECK]
+# Игнорируемые модули (например, C-расширения)
+ignored-modules=
+
+# Игнорируемые классы
+ignored-classes=SQLObject
+
+[VARIABLES]
+# Разрешённые имена для неиспользуемых переменных
+dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
+
+[CLASSES]
+# Разрешённые имена для специальных методов
+valid-metaclass-classmethod-first-arg=cls
+
+[IMPORTS]
+# Разрешить wildcard импорты из указанных модулей
+allow-wildcard-with-all=no
+
+# Проверять устаревшие модули
+deprecated-modules=regsub,TERMIOS,Bastion,rexec

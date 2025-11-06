@@ -1,0 +1,47 @@
+# Prettier ignore patterns
+# Для использования в модуле создайте symlink:
+#   ln -s ../../config/javascript/.prettierignore .prettierignore
+
+# Dependencies
+node_modules
+vendor
+bower_components
+
+# Build outputs
+dist
+build
+out
+.next
+.nuxt
+.cache
+.parcel-cache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Compiled
+*.min.js
+*.min.css
+
+# Generated
+coverage
+.nyc_output

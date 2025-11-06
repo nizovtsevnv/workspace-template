@@ -1,0 +1,153 @@
+# Workspace .gitignore
+# Субмодули имеют собственные .gitignore для специфичных файлов
+
+# ===================================
+# Environment & Secrets
+# ===================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+credentials/
+
+# ===================================
+# IDE & Editors
+# ===================================
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ===================================
+# OS Files
+# ===================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+.Trash-*
+
+# ===================================
+# Temporary & Cache Files
+# ===================================
+*.tmp
+*.temp
+*.log
+*.cache
+.cache/
+tmp/
+temp/
+
+# ===================================
+# Docker & DevContainers
+# ===================================
+# DevContainer generated files
+.devcontainer/docker-compose.override.yml
+.devcontainer/.env
+
+# Docker
+docker-compose.override.yml
+*.dockerignore.local
+
+# ===================================
+# Build & Generated Files
+# ===================================
+dist/
+build/
+out/
+.output/
+
+# Generated documentation
+doc/generated/*
+!doc/generated/.gitkeep
+
+# ===================================
+# Dependencies & Packages
+# ===================================
+# Note: субмодули управляют своими зависимостями
+# Здесь только workspace-уровень если будет
+
+# ===================================
+# AI & Tools
+# ===================================
+# AI generated files (если нужно игнорировать)
+# .ai/generated/
+
+# ===================================
+# Backup & Archive
+# ===================================
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.patch
+
+# ===================================
+# Logs & Reports
+# ===================================
+*.log
+logs/
+*.report
+reports/
+
+# ===================================
+# Test & Coverage
+# ===================================
+# Workspace-level test artifacts
+.coverage
+coverage/
+.nyc_output/
+htmlcov/
+
+# ===================================
+# Modules (template development)
+# ===================================
+# В режиме разработки шаблона игнорируем подкаталоги modules
+# При инициализации проекта (make init) эта секция удаляется
+modules/*/
+
+# ===================================
+# Misc
+# ===================================
+.terraform/
+*.tfstate
+*.tfstate.backup
+.template-commit

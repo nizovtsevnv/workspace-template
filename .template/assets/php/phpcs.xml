@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<ruleset name="Workspace PHP Coding Standard">
+    <description>Стандарт кодирования PHP для workspace</description>
+
+    <!--
+        Для использования в модуле создайте symlink:
+          ln -s ../../config/php/phpcs.xml phpcs.xml
+
+        Или создайте собственный файл с расширением:
+          <?xml version="1.0"?>
+          <ruleset name="MyModule">
+              <rule ref="../../config/php/phpcs.xml"/>
+              <rule ref="...">...</rule>
+          </ruleset>
+    -->
+
+    <!-- Базовый стандарт PSR-12 -->
+    <rule ref="PSR12"/>
+
+    <!-- Дополнительные правила -->
+
+    <!-- Массивы -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+    <rule ref="Squiz.Arrays.ArrayBracketSpacing"/>
+
+    <!-- Классы -->
+    <rule ref="Generic.Classes.DuplicateClassName"/>
+    <rule ref="PSR1.Classes.ClassDeclaration"/>
+    <rule ref="Squiz.Classes.ValidClassName"/>
+
+    <!-- Комментарии -->
+    <rule ref="Generic.Commenting.Todo"/>
+    <rule ref="Generic.Commenting.Fixme"/>
+    <rule ref="Squiz.Commenting.InlineComment"/>
+
+    <!-- Управляющие структуры -->
+    <rule ref="Generic.ControlStructures.InlineControlStructure"/>
+    <rule ref="Squiz.ControlStructures.ControlSignature"/>
+    <rule ref="Squiz.ControlStructures.ForEachLoopDeclaration"/>
+    <rule ref="Squiz.ControlStructures.ForLoopDeclaration"/>
+
+    <!-- Форматирование -->
+    <rule ref="Generic.Formatting.DisallowMultipleStatements"/>
+    <rule ref="Generic.Formatting.SpaceAfterCast"/>
+    <rule ref="Generic.Formatting.SpaceAfterNot">
+        <properties>
+            <property name="spacing" value="0"/>
+        </properties>
+    </rule>
+
+    <!-- Функции -->
+    <rule ref="Generic.Functions.CallTimePassByReference"/>
+    <rule ref="Generic.Functions.FunctionCallArgumentSpacing"/>
+    <rule ref="Squiz.Functions.FunctionDeclaration"/>
+    <rule ref="Squiz.Functions.FunctionDeclarationArgumentSpacing"/>
+
+    <!-- Метрики -->
+    <rule ref="Generic.Metrics.CyclomaticComplexity">
+        <properties>
+            <property name="complexity" value="10"/>
+            <property name="absoluteComplexity" value="20"/>
+        </properties>
+    </rule>
+    <rule ref="Generic.Metrics.NestingLevel">
+        <properties>
+            <property name="nestingLevel" value="5"/>
+            <property name="absoluteNestingLevel" value="10"/>
+        </properties>
+    </rule>
+
+    <!-- Соглашения по именованию -->
+    <rule ref="Generic.NamingConventions.ConstructorName"/>
+    <rule ref="Generic.NamingConventions.UpperCaseConstantName"/>
+    <rule ref="Generic.NamingConventions.CamelCapsFunctionName"/>
+
+    <!-- Операторы -->
+    <rule ref="Squiz.Operators.ValidLogicalOperators"/>
+
+    <!-- PHP -->
+    <rule ref="Generic.PHP.BacktickOperator"/>
+    <rule ref="Generic.PHP.CharacterBeforePHPOpeningTag"/>
+    <rule ref="Generic.PHP.DeprecatedFunctions"/>
+    <rule ref="Generic.PHP.DisallowAlternativePHPTags"/>
+    <rule ref="Generic.PHP.DisallowShortOpenTag"/>
+    <rule ref="Generic.PHP.ForbiddenFunctions"/>
+    <rule ref="Generic.PHP.LowerCaseConstant"/>
+    <rule ref="Generic.PHP.LowerCaseKeyword"/>
+    <rule ref="Generic.PHP.LowerCaseType"/>
+    <rule ref="Generic.PHP.NoSilencedErrors"/>
+
+    <!-- Строки -->
+    <rule ref="Squiz.Strings.ConcatenationSpacing">
+        <properties>
+            <property name="spacing" value="1"/>
+            <property name="ignoreNewlines" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="Squiz.Strings.DoubleQuoteUsage"/>
+
+    <!-- Пробелы -->
+    <rule ref="Generic.WhiteSpace.DisallowTabIndent"/>
+    <rule ref="Generic.WhiteSpace.ScopeIndent">
+        <properties>
+            <property name="indent" value="4"/>
+        </properties>
+    </rule>
+    <rule ref="Squiz.WhiteSpace.CastSpacing"/>
+    <rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
+    <rule ref="Squiz.WhiteSpace.LogicalOperatorSpacing"/>
+    <rule ref="Squiz.WhiteSpace.OperatorSpacing"/>
+    <rule ref="Squiz.WhiteSpace.ScopeClosingBrace"/>
+    <rule ref="Squiz.WhiteSpace.ScopeKeywordSpacing"/>
+    <rule ref="Squiz.WhiteSpace.SemicolonSpacing"/>
+    <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace"/>
+
+    <!-- Пути для проверки -->
+    <file>.</file>
+
+    <!-- Исключения -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/storage/*</exclude-pattern>
+    <exclude-pattern>*/bootstrap/cache/*</exclude-pattern>
+    <exclude-pattern>*/_ide_helper.php</exclude-pattern>
+    <exclude-pattern>*/_ide_helper_models.php</exclude-pattern>
+    <exclude-pattern>*/.phpstorm.meta.php</exclude-pattern>
+
+    <!-- Аргументы -->
+    <arg name="colors"/>
+    <arg value="sp"/>
+    <arg name="parallel" value="8"/>
+</ruleset>

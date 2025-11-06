@@ -1,0 +1,40 @@
+# Workspace - Git Submodules
+#
+# Каждый субмодуль представляет собой отдельный прогрманный компонент проекта
+# с собственным git-репозиторием, CI/CD и деплоем
+#
+# Формат:
+# [submodule "modules/<service-name>"]
+#   path = modules/<service-name>
+#   url = git@git.sigmadev.ru:sigma/<group>/<service-name>.git
+#   branch = main  # или develop, в зависимости от workflow
+
+# ===================================
+# Инструкции по работе с субмодулями:
+# ===================================
+#
+# Добавить новый субмодуль:
+#   git submodule add -b main git@git.sigmadev.ru:sigma/<group>/<name>.git modules/<name>
+#
+# Клонировать workspace со всеми субмодулями:
+#   git clone --recurse-submodules <workspace-url>
+#
+# Инициализировать субмодули в существующем clone:
+#   git submodule update --init --recursive
+#
+# Обновить все субмодули до последних версий:
+#   git submodule update --remote --merge
+#   или: make submodules-update
+#
+# Переключиться на рабочую ветку в субмодуле:
+#   cd modules/<name>
+#   git checkout main
+#
+# Проверить статус всех субмодулей:
+#   git submodule foreach 'git status'
+#   или: make submodules-status
+#
+# Удалить субмодуль:
+#   git submodule deinit -f modules/<name>
+#   git rm -f modules/<name>
+#   rm -rf .git/modules/modules/<name>

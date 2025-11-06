@@ -11,6 +11,7 @@
 . "${SCRIPT_DIR:?SCRIPT_DIR не определён}/lib/loader.sh"
 load_lib "ui" "log_info"
 load_lib "modules" "detect_module_tech"
+load_lib "modules-detect" "detect_module_stack"
 load_lib "modules-git" "is_git_submodule"
 
 # Показать справку по модулю
@@ -30,15 +31,20 @@ show_module_help() {
 	version=$(get_module_versions_compact "$MODULE_PATH")
 	[ -z "$version" ] && version="(не определена)"
 
+	# Получаем только стеки (без CI/CD и makefile)
+	module_stacks=$(detect_module_stack "$MODULE_PATH")
+
 	tech_display=""
-	for tech in $MODULE_TECH; do
-		case "$tech" in
+	for stack in $module_stacks; do
+		# Форматируем имена стеков
+		case "$stack" in
 			nodejs) name="Node.js" ;;
 			php) name="PHP" ;;
 			python) name="Python" ;;
 			rust) name="Rust" ;;
-			*) name="$tech" ;;
+			*) name="$stack" ;;
 		esac
+
 		if [ -z "$tech_display" ]; then
 			tech_display="$name"
 		else

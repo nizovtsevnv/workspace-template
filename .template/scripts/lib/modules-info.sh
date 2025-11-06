@@ -9,7 +9,7 @@
 # Загружаем необходимые библиотеки
 # SCRIPT_DIR должен быть определён через init.sh перед загрузкой библиотек
 . "${SCRIPT_DIR:?SCRIPT_DIR не определён}/lib/loader.sh"
-load_lib "modules-detect" "detect_module_tech"
+load_lib "modules-detect" "detect_module_tech detect_module_stack detect_module_cicd"
 
 # ===================================
 # Функции получения информации о версиях
@@ -103,14 +103,14 @@ get_module_info() {
 # Возвращает: строку вида "GitHub Actions, GitLab CI" или "нет"
 get_module_cicd() {
 	module_path="$1"
-	techs=$(detect_module_tech "$module_path")
+	cicd_systems=$(detect_module_cicd "$module_path")
 	cicd=""
 
 	# Таблица маппинга (DRY подход)
 	for system in "github:GitHub Actions" "gitlab:GitLab CI" "gitea:Gitea Actions"; do
 		key="${system%%:*}"
 		name="${system#*:}"
-		if echo "$techs" | grep -q "$key"; then
+		if echo "$cicd_systems" | grep -q "$key"; then
 			[ -n "$cicd" ] && cicd="$cicd, "
 			cicd="$cicd$name"
 		fi

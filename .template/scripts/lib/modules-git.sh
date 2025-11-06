@@ -75,16 +75,12 @@ get_submodule_branch() {
 
 # Получить текстовое представление типа модуля для отображения
 # Параметр: $1 - путь к модулю
-# Возвращает: "Local" или "Git Submodule (branch: <branch>, url: <url>)"
+# Возвращает: "Local" или "Git Submodule"
 get_module_type_display() {
 	local module_path="$1"
 
 	if is_git_submodule "$module_path"; then
-		local url
-		local branch
-		url=$(get_submodule_url "$module_path")
-		branch=$(get_submodule_branch "$module_path")
-		echo "Git Submodule (branch: $branch)"
+		echo "Git Submodule"
 	else
 		echo "Local"
 	fi

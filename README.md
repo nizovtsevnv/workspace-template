@@ -10,6 +10,7 @@
 # Клонировать шаблон
 git clone https://github.com/nizovtsevnv/workspace-template.git my-project
 cd my-project
+make init
 ```
 
 **Готово!** Теперь можно создавать модули проекта.

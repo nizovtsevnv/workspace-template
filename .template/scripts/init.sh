@@ -73,7 +73,7 @@ else
 	fi
 
 	# Клонирование репозитория
-	temp_dir=$(mktemp -d /tmp/workspace-template-init)
+	temp_dir=$(mktemp -d /tmp/workspace-template-init.XXXXXX)
 	# shellcheck disable=SC2064
 	trap "rm -rf $temp_dir" EXIT INT TERM
 

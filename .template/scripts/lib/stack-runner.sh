@@ -43,12 +43,6 @@ _run_stack_generic() {
 	shift 4
 	cmd="$*"
 
-	# Проверяем существование рабочей директории
-	if [ ! -d "$workdir" ]; then
-		printf "${COLOR_ERROR}✗${COLOR_RESET} Директория не существует: %s\n" "$workdir" >&2
-		return 1
-	fi
-
 	# Проверяем наличие инструмента на хосте
 	if command -v "$host_command" >/dev/null 2>&1; then
 		(cd "$workdir" && eval "$cmd")
@@ -134,12 +128,6 @@ run_stack_command() {
 	workdir="$2"
 	shift 2
 	cmd="$*"
-
-	# Проверяем существование рабочей директории
-	if [ ! -d "$workdir" ]; then
-		printf "${COLOR_ERROR}✗${COLOR_RESET} Директория не существует: %s\n" "$workdir" >&2
-		return 1
-	fi
 
 	case "$tech" in
 		nodejs) run_nodejs "$workdir" "$cmd" ;;

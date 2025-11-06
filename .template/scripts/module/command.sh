@@ -14,6 +14,9 @@ set -e
 . "$SCRIPT_DIR/lib/module-help.sh"
 . "$SCRIPT_DIR/lib/stack-runner.sh"
 
+# ВАЖНО: Переходим в workspace root для корректной работы с относительными путями
+cd "$WORKSPACE_ROOT"
+
 # ===================================
 # Константы: Система приоритетов выполнения команд
 # ===================================
@@ -48,7 +51,7 @@ MODULE_ARGS="$*"
 
 MODULE_PATH="${MODULES_DIR:-modules}/$MODULE_NAME"
 
-# Проверка существования модуля
+# Проверка существования модуля (теперь мы в WORKSPACE_ROOT, путь относительный)
 if [ ! -d "$MODULE_PATH" ]; then
 	log_error "Модуль '$MODULE_NAME' не найден в $MODULE_PATH"
 

@@ -15,4 +15,4 @@
 
 log_info "Команды управления шаблоном проекта"
 
-printf "make template test<COL>Запустить автотесты шаблона<ROW>make template update<COL>Обновить версию шаблона\n" | print_table 24
+printf "make template status<COL>Показать статус и версию шаблона<ROW>make template update<COL>Обновить версию шаблона<ROW>make template test<COL>Запустить автотесты шаблона\n" | print_table 24

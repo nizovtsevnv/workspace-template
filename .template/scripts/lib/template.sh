@@ -34,24 +34,11 @@ readonly MERGE_STRATEGY_OURS=".github/* .editorconfig .gitignore .gitmodules REA
 #   check_project_init_status
 #   if [ "$STATUS" = "инициализирован" ]; then ...
 check_project_init_status() {
-	STATUS="не инициализирован"
-
-	if git remote get-url template >/dev/null 2>&1; then
-		origin_url=$(git remote get-url origin 2>/dev/null || echo "")
-		template_url=$(git remote get-url template 2>/dev/null || echo "")
-
-		if [ -z "$origin_url" ]; then
-			STATUS="инициализирован"
-		else
-			# Нормализация URL для сравнения
-			origin_norm=$(echo "$origin_url" | sed 's|git@github.com:|https://github.com/|' | sed 's|\.git$||')
-			template_norm=$(echo "$template_url" | sed 's|git@github.com:|https://github.com/|' | sed 's|\.git$||')
-
-			if [ "$origin_norm" != "$template_norm" ]; then
-				# shellcheck disable=SC2034
-				STATUS="инициализирован"
-			fi
-		fi
+	# Проект считается инициализированным, если существует файл .template-commit
+	if [ -f ".template-commit" ]; then
+		STATUS="инициализирован"
+	else
+		STATUS="не инициализирован"
 	fi
 }
 

@@ -55,8 +55,8 @@ module-import:
 	$(call run-script,.template/scripts/module/import.sh)
 
 # Stub targets для подавления ошибок Make при вызове `make module create/import/pull/push/status`
-.PHONY: create import pull push status
-create import pull push status:
+.PHONY: create import pull push
+create import pull push:
 	@:
 
 # ===================================

@@ -69,7 +69,9 @@ print_table() {
 		padding=$((col_width - key_len))
 		[ $padding -lt 0 ] && padding=0
 
-		printf "  ${COLOR_SUCCESS}%s%*s${COLOR_RESET} %s\n" "$key" $padding "" "$value"
+		# Используем echo -e для правильной интерпретации escape-последовательностей в value
+		printf "  ${COLOR_SUCCESS}%s%*s${COLOR_RESET} " "$key" $padding ""
+		echo -e "$value"
 	done
 }
 

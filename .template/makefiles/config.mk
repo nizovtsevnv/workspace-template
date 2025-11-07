@@ -9,6 +9,11 @@
 PROJECT_NAME := polyglot-workspace
 WORKSPACE_ROOT := $(shell pwd)
 
+# URL репозитория шаблона для обновлений
+# Можно переопределить через переменную окружения перед вызовом make
+TEMPLATE_REPO_URL ?= https://github.com/nizovtsevnv/workspace-template.git
+export TEMPLATE_REPO_URL
+
 # Экспортировать UID и GID хоста
 # Это обеспечивает корректные права доступа к файлам в контейнерах
 # Используем HOST_UID/HOST_GID, т.к. GID - встроенная переменная bash

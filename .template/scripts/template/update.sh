@@ -18,52 +18,37 @@ set -e
 
 log_section "Обновление шаблона"
 
-# Определить статус инициализации
-check_project_init_status
+# Проверка URL шаблона
+if [ -z "$TEMPLATE_REPO_URL" ]; then
+	log_error "TEMPLATE_REPO_URL не определён"
+	log_info "Убедитесь, что запускаете команду через make"
+	exit 1
+fi
 
-if [ "$STATUS" = "инициализирован" ]; then
+# Определить статус: инициализированный проект или сам шаблон
+if [ -f ".template-commit" ]; then
 	# ===========================================
 	# Обновление инициализированного проекта
 	# ===========================================
 	log_success "Режим: инициализированный проект"
-
-	# Автомиграция .template-version → .template-commit (для старых проектов)
-	if [ -f .template-version ] && [ ! -f .template-commit ]; then
-		log_info "Обнаружен старый формат версии (.template-version)"
-		old_version=$(cat .template-version 2>/dev/null)
-		# Пробуем найти коммит по версии в истории
-		old_commit=$(git log --all --oneline | grep -i "$old_version" | head -1 | awk '{print $1}' 2>/dev/null || echo "")
-		if [ -n "$old_commit" ]; then
-			save_template_commit "$old_commit"
-			log_success "Мигрировано в новый формат: $old_commit"
-			git rm -f .template-version 2>/dev/null || rm -f .template-version
-		else
-			log_warning "Не удалось найти коммит для версии $old_version"
-			log_info "Будет использован текущий HEAD template/main"
-			# Используем последний коммит template/main как fallback
-			latest_commit=$(git rev-parse --short=7 template/main 2>/dev/null || echo "")
-			if [ -n "$latest_commit" ]; then
-				save_template_commit "$latest_commit"
-				git rm -f .template-version 2>/dev/null || rm -f .template-version
-			fi
-		fi
-		printf "\n"
-	fi
+	log_info "URL шаблона: $TEMPLATE_REPO_URL"
+	printf "\n"
 
 	# Проверка: есть uncommitted changes
 	if ! require_clean_working_tree; then
 		exit 1
 	fi
 
-	# Fetch обновлений
-	show_spinner "Проверка обновлений шаблона" git fetch template --force 2>&1 || true
+	# Fetch обновлений напрямую из репозитория шаблона
+	show_spinner "Проверка обновлений шаблона" \
+		git fetch "$TEMPLATE_REPO_URL" main:refs/remotes/template/main --force 2>&1 || true
 
 	# Определить текущий и последний коммиты
 	current_commit=$(get_template_commit)
 	current_date=$(get_template_commit_date "$current_commit")
 
-	latest_commit=$(git rev-parse --short=7 template/main 2>/dev/null || echo "unknown")
-	latest_date=$(get_template_commit_date "template/main")
+	latest_commit=$(git rev-parse --short=7 refs/remotes/template/main 2>/dev/null || echo "unknown")
+	latest_date=$(get_template_commit_date "refs/remotes/template/main")
 
 	printf "Текущая версия:   %s (%s)\n" "$current_date" "$current_commit"
 	printf "Последняя версия: %s (%s)\n" "$latest_date" "$latest_commit"
@@ -77,7 +62,7 @@ if [ "$STATUS" = "инициализирован" ]; then
 
 	# Показать изменения (список коммитов между версиями)
 	log_info "Изменения между версиями:"
-	show_changelog "$current_commit" "template/main"
+	show_changelog "$current_commit" "refs/remotes/template/main"
 	printf "\n"
 
 	# Подтверждение обновления
@@ -86,11 +71,11 @@ if [ "$STATUS" = "инициализирован" ]; then
 		exit 0
 	fi
 
-	# Выполняем merge последнего коммита из template/main
+	# Выполняем merge последнего коммита из refs/remotes/template/main
 	tmpfile=$(mktemp)
 	# shellcheck disable=SC2064
 	trap "rm -f $tmpfile" EXIT INT TERM
-	if ! git merge --allow-unrelated-histories --no-commit --no-ff template/main > "$tmpfile" 2>&1; then
+	if ! git merge --allow-unrelated-histories --no-commit --no-ff refs/remotes/template/main > "$tmpfile" 2>&1; then
 		# Merge с конфликтами - это нормально, продолжаем
 		# Но показываем вывод если это не конфликт, а другая ошибка
 		if ! grep -q "Automatic merge failed" "$tmpfile"; then

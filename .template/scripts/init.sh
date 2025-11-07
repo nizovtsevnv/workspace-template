@@ -101,11 +101,7 @@ else
 	origin_configured=true
 fi
 
-# 1.6. Настройка template remote
-show_spinner "Настройка git remote template" git remote add template "$template_url" 2>/dev/null || true
-git fetch template --tags --force >/dev/null 2>&1 || true
-
-# 1.7. Обновление .gitignore
+# 1.6. Обновление .gitignore
 if grep -q "^modules/\*/" .gitignore 2>/dev/null; then
 	sed -i '/^# Modules (template development)/,/^modules\/\*\//d' .gitignore
 	log_success "Правило modules/*/ удалено из .gitignore"

@@ -247,10 +247,13 @@ case "$BULK_CMD" in
 				branch=$(get_submodule_branch "$module_path")
 			fi
 
+			# Объединяем колонки в одну строку для value
+			value="${status}  ${branch}  ${commit}"
+
 			if [ -z "$table_data" ]; then
-				table_data="${module_name}<COL>${status}<COL>${branch}<COL>${commit}"
+				table_data="${module_name}<COL>${value}"
 			else
-				table_data="${table_data}<ROW>${module_name}<COL>${status}<COL>${branch}<COL>${commit}"
+				table_data="${table_data}<ROW>${module_name}<COL>${value}"
 			fi
 		done
 

@@ -92,7 +92,7 @@ EOF
 esac
 
 # Копирование конфигураций из assets
-copy_stack_assets "c" "$MODULE_TARGET/$MODULE_NAME"
+copy_stack_assets "c" "$MODULE_TARGET/$MODULE_NAME" "$MODULE_TYPE"
 
 # Завершение
 finish_generator "C" "$MODULE_TARGET/$MODULE_NAME"

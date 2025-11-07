@@ -46,19 +46,30 @@ create_target_dir() {
 # Копирование assets стека
 # ===================================
 # Копирует конфигурационные файлы из .template/assets/<stack>/
+# Поддерживает декомпозицию: common/ и тип-специфичные директории
 # Параметры:
 #   $1 - имя стека (nodejs, php, python, rust, c, zig)
 #   $2 - целевая директория модуля
+#   $3 - тип модуля (опционально, если не указан - копирует только common)
 # Возвращает: 0 всегда (игнорирует ошибки копирования)
-# Использование: copy_stack_assets "nodejs" "$MODULE_TARGET/$MODULE_NAME"
+# Использование: copy_stack_assets "nodejs" "$MODULE_TARGET/$MODULE_NAME" "$MODULE_TYPE"
 copy_stack_assets() {
 	stack_name="$1"
 	module_path="$2"
+	module_type="${3:-base}"  # По умолчанию 'base' если не указано
 
-	assets_path="/workspace/.template/assets/$stack_name"
+	assets_base="/workspace/.template/assets/$stack_name"
 
-	if [ -d "$assets_path" ]; then
-		cp -r "$assets_path"/. "$module_path/" 2>/dev/null || true
+	# Копируем common/ (если есть)
+	# -f: принудительная перезапись существующих файлов
+	if [ -d "$assets_base/common" ]; then
+		cp -rf "$assets_base/common"/. "$module_path/" 2>/dev/null || true
+	fi
+
+	# Копируем тип-специфичные файлы (если есть)
+	# Тип-специфичные файлы перезаписывают файлы из common
+	if [ -d "$assets_base/$module_type" ]; then
+		cp -rf "$assets_base/$module_type"/. "$module_path/" 2>/dev/null || true
 	fi
 }
 

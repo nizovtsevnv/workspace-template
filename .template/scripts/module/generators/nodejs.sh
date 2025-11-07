@@ -18,7 +18,7 @@ MODULE_NAME="$2"
 MODULE_TARGET="$3"
 
 # Валидация параметров
-validate_generator_params "$MODULE_TYPE" "$MODULE_NAME" "$MODULE_TARGET" "bun, npm, pnpm, yarn, nextjs, expo, svelte" || exit 1
+validate_generator_params "$MODULE_TYPE" "$MODULE_NAME" "$MODULE_TARGET" "bun, npm, pnpm, yarn, nextjs, expo, svelte, supabase" || exit 1
 
 # Создать целевую директорию
 create_target_dir "$MODULE_TARGET"
@@ -95,13 +95,54 @@ case "$MODULE_TYPE" in
 		bun install
 		;;
 
+	supabase)
+		mkdir -p "$MODULE_TARGET/$MODULE_NAME"
+		cd "$MODULE_TARGET/$MODULE_NAME"
+
+		# Инициализация bun проекта (используем официальный инициализатор)
+		bun init -y
+		npm pkg set type=module
+
+		# Установка Supabase CLI как dev зависимость
+		bun add -d supabase
+
+		# Инициализация Supabase проекта
+		bunx supabase init
+
+		# Добавление npm scripts для работы с Supabase
+		npm pkg set scripts.start="supabase start"
+		npm pkg set scripts.stop="supabase stop"
+		npm pkg set scripts.status="supabase status"
+		npm pkg set scripts.db:pull="supabase db pull"
+		npm pkg set scripts.db:push="supabase db push"
+		npm pkg set scripts.db:reset="supabase db reset"
+		npm pkg set scripts.migration:new="supabase migration new"
+		npm pkg set scripts.types:gen="supabase gen types typescript --local > types/supabase.ts"
+		npm pkg set scripts.functions:serve="supabase functions serve"
+		npm pkg set scripts.functions:deploy="supabase functions deploy"
+
+		# Создать директорию для типов
+		mkdir -p types
+		;;
+
 	*)
-		handle_unknown_type "$MODULE_TYPE" "bun, npm, pnpm, yarn, nextjs, expo, svelte"
+		handle_unknown_type "$MODULE_TYPE" "bun, npm, pnpm, yarn, nextjs, expo, svelte, supabase"
+		;;
+esac
+
+# Маппинг типов на соответствующие директории в assets
+# Базовые типы (bun, npm, pnpm, yarn) используют assets из 'base'
+case "$MODULE_TYPE" in
+	bun|npm|pnpm|yarn)
+		asset_type="base"
+		;;
+	*)
+		asset_type="$MODULE_TYPE"
 		;;
 esac
 
 # Копирование конфигураций из assets
-copy_stack_assets "nodejs" "$MODULE_TARGET/$MODULE_NAME"
+copy_stack_assets "nodejs" "$MODULE_TARGET/$MODULE_NAME" "$asset_type"
 
 # Завершение
 finish_generator "Node.js" "$MODULE_TARGET/$MODULE_NAME"

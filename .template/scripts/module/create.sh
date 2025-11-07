@@ -63,7 +63,7 @@ if [ -z "$MODULE_TYPE" ]; then
 			esac
 			;;
 		nodejs)
-			sel=$(select_menu "Bun (TypeScript)" "npm (TypeScript)" "pnpm (TypeScript)" "yarn (TypeScript)" "Next.js (TypeScript + Tailwind)" "Expo (TypeScript)" "SvelteKit (TypeScript)") || exit 1
+			sel=$(select_menu "Bun (TypeScript)" "npm (TypeScript)" "pnpm (TypeScript)" "yarn (TypeScript)" "Next.js (TypeScript + Tailwind)" "Expo (TypeScript)" "SvelteKit (TypeScript)" "Supabase (Backend + Edge Functions)") || exit 1
 			case "$sel" in
 				"Bun"*) type="bun" ;;
 				"npm"*) type="npm" ;;
@@ -72,6 +72,7 @@ if [ -z "$MODULE_TYPE" ]; then
 				"Next.js"*) type="nextjs" ;;
 				"Expo"*) type="expo" ;;
 				"SvelteKit"*) type="svelte" ;;
+				"Supabase"*) type="supabase" ;;
 			esac
 			;;
 		php)
@@ -183,13 +184,31 @@ create_module() {
 			run_generator "$stack" "$type" "$name" "$MODULE_TARGET"
 	fi
 
-	# Копирование специализированного README.md из шаблона стека
-	readme_template="$WORKSPACE_ROOT/.template/assets/$stack/README.md"
-	if [ -f "$readme_template" ]; then
-		sed -e "s/{{MODULE_NAME}}/$name/g" \
+	# Копирование assets на хосте (после генерации в контейнере)
+	# Маппинг типов для Node.js (базовые типы используют 'base')
+	asset_type="$type"
+	case "$stack-$type" in
+		nodejs-bun|nodejs-npm|nodejs-pnpm|nodejs-yarn)
+			asset_type="base"
+			;;
+	esac
+
+	# Копируем common assets
+	if [ -d "$WORKSPACE_ROOT/.template/assets/$stack/common" ]; then
+		cp -rf "$WORKSPACE_ROOT/.template/assets/$stack/common"/. "$MODULE_TARGET/$name/" 2>/dev/null || true
+	fi
+
+	# Копируем тип-специфичные assets
+	if [ -d "$WORKSPACE_ROOT/.template/assets/$stack/$asset_type" ]; then
+		cp -rf "$WORKSPACE_ROOT/.template/assets/$stack/$asset_type"/. "$MODULE_TARGET/$name/" 2>/dev/null || true
+	fi
+
+	# Подстановка переменных в README.md
+	if [ -f "$MODULE_TARGET/$name/README.md" ]; then
+		sed -i -e "s/{{MODULE_NAME}}/$name/g" \
 			-e "s/{{STACK}}/$stack_display/g" \
 			-e "s/{{TYPE}}/$type/g" \
-			"$readme_template" > "$MODULE_TARGET/$name/README.md"
+			"$MODULE_TARGET/$name/README.md"
 	fi
 
 	# Git инициализация на хосте

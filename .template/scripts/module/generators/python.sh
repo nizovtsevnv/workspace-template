@@ -52,7 +52,7 @@ EOF
 esac
 
 # Копирование конфигураций из assets
-copy_stack_assets "python" "$MODULE_TARGET/$MODULE_NAME"
+copy_stack_assets "python" "$MODULE_TARGET/$MODULE_NAME" "$MODULE_TYPE"
 
 # Завершение
 finish_generator "Python" "$MODULE_TARGET/$MODULE_NAME"

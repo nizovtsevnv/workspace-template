@@ -36,8 +36,10 @@ readonly MERGE_STRATEGY_OURS=".github/* .editorconfig .gitignore .gitmodules REA
 check_project_init_status() {
 	# Проект считается инициализированным, если существует файл .template-commit
 	if [ -f ".template-commit" ]; then
+		# shellcheck disable=SC2034  # STATUS используется в вызывающем коде
 		STATUS="инициализирован"
 	else
+		# shellcheck disable=SC2034  # STATUS используется в вызывающем коде
 		STATUS="не инициализирован"
 	fi
 }

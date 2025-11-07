@@ -32,14 +32,57 @@
 │       ├── generate-c.sh
 │       ├── generate-zig.sh
 │       └── generate-php.sh
-└── assets/                # Конфигурации и шаблоны
-    ├── README.md          # Шаблон README для модулей
-    ├── nodejs/            # .prettierrc, .eslintrc.json, tsconfig.json
-    ├── python/            # .flake8, ruff.toml
-    ├── rust/              # rustfmt.toml, clippy.toml
-    ├── c/                 # .clang-format, .editorconfig
-    ├── zig/               # (использует встроенное форматирование)
-    └── php/               # .php-cs-fixer.php, phpstan.neon
+└── assets/                # Конфигурации и шаблоны (с декомпозицией)
+    ├── README.md          # Общий шаблон README
+    ├── nodejs/
+    │   ├── common/        # Общие конфиги (.eslintrc, .prettierrc, tsconfig.json)
+    │   ├── base/          # README и .gitignore для простых проектов
+    │   ├── nextjs/        # README для Next.js
+    │   ├── expo/          # README для Expo
+    │   ├── svelte/        # README для SvelteKit
+    │   └── supabase/      # README и .gitignore для Supabase
+    ├── python/
+    │   ├── common/        # .flake8, ruff.toml, .pylintrc
+    │   ├── uv/            # README для uv
+    │   └── poetry/        # README для poetry
+    ├── rust/
+    │   ├── common/        # rustfmt.toml, clippy.toml
+    │   ├── bin/           # README для binary
+    │   ├── lib/           # README для library
+    │   └── dioxus/        # README для dioxus
+    ├── c/
+    │   ├── common/        # .clang-format, .editorconfig
+    │   ├── makefile/      # README для makefile
+    │   └── cmake/         # README для cmake
+    ├── php/
+    │   ├── common/        # .php-cs-fixer.php, phpstan.neon
+    │   ├── composer-lib/  # README для библиотеки
+    │   ├── composer-project/ # README для проекта
+    │   └── laravel/       # README для Laravel
+    └── zig/
+        ├── common/        # (пусто, для единообразия)
+        ├── exe/           # README для executable
+        └── lib/           # README для library
+```
+
+### Декомпозиция assets
+
+Для сложных генераторов (Node.js, PHP, Rust) структура assets разделена на:
+
+- **common/** - общие конфигурации, копируемые для всех типов модулей (линтеры, форматтеры)
+- **type-specific/** - специфичные файлы для каждого типа (README, .gitignore, дополнительные конфиги)
+
+При создании модуля сначала копируются файлы из `common/`, затем из типо-специфичной директории. Это позволяет:
+
+- ✅ Избежать дублирования общих конфигураций
+- ✅ Легко добавлять новые типы модулей
+- ✅ Переопределять файлы из common в type-specific (например, разные .gitignore)
+- ✅ Поддерживать единообразие для всех стеков
+
+Пример использования в генераторе:
+```sh
+copy_stack_assets "nodejs" "$MODULE_TARGET/$MODULE_NAME" "$MODULE_TYPE"
+# Копирует: nodejs/common/* + nodejs/supabase/*
 ```
 
 ## Использование
@@ -68,6 +111,7 @@ make module create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool MODULE_
 - `nextjs` - Next.js с TypeScript и Tailwind
 - `expo` - React Native с Expo
 - `svelte` - SvelteKit
+- `supabase` - Backend с Supabase (миграции, Edge Functions, типы)
 
 **PHP**:
 - `composer-lib` - библиотека Composer

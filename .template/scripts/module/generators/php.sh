@@ -60,7 +60,7 @@ case "$MODULE_TYPE" in
 esac
 
 # Копирование конфигураций из assets
-copy_stack_assets "php" "$MODULE_TARGET/$MODULE_NAME"
+copy_stack_assets "php" "$MODULE_TARGET/$MODULE_NAME" "$MODULE_TYPE"
 
 # Завершение
 finish_generator "PHP" "$MODULE_TARGET/$MODULE_NAME"

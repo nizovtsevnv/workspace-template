@@ -52,7 +52,7 @@ case "$MODULE_TYPE" in
 esac
 
 # Копирование конфигураций из assets
-copy_stack_assets "rust" "$MODULE_TARGET/$MODULE_NAME"
+copy_stack_assets "rust" "$MODULE_TARGET/$MODULE_NAME" "$MODULE_TYPE"
 
 # Завершение
 finish_generator "Rust" "$MODULE_TARGET/$MODULE_NAME"

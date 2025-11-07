@@ -61,11 +61,15 @@ detect_module_cicd() {
 
 # Определить Node.js пакетный менеджер по lock файлам
 # Параметр: $1 - путь к модулю
-# Приоритет: bun.lockb > pnpm-lock.yaml > yarn.lock > package-lock.json > bun (default)
+# Приоритет: bun.lockb/bun.lock > pnpm-lock.yaml > yarn.lock > package-lock.json > bun (default)
 detect_nodejs_manager() {
 	module_path="$1"
 
+	# Bun поддерживает два формата lock-файлов:
+	# - bun.lockb (бинарный, быстрый)
+	# - bun.lock (текстовый, для git-friendly diff)
 	[ -f "$module_path/bun.lockb" ] && echo "bun" && return
+	[ -f "$module_path/bun.lock" ] && echo "bun" && return
 	[ -f "$module_path/pnpm-lock.yaml" ] && echo "pnpm" && return
 	[ -f "$module_path/yarn.lock" ] && echo "yarn" && return
 	[ -f "$module_path/package-lock.json" ] && echo "npm" && return

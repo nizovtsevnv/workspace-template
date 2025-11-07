@@ -31,9 +31,10 @@ cd "$WORKSPACE_ROOT"
 # - tech_filter: all (любая технология) или конкретная (nodejs, php, python)
 # - check_function: функция проверки из lib/modules.sh (только проверяет наличие, не выполняет)
 # - exec_command: команда для выполнения на хосте (содержит $MODULE_CMD, аргументы добавляются автоматически)
+#   Для nodejs используется __NODEJS_PM__ как placeholder для автоопределения пакетного менеджера
 readonly PRIORITY_CHECKS="
 makefile:all:check_makefile_target:make \$MODULE_CMD
-package_json:nodejs:check_package_json_script:npm run \$MODULE_CMD
+package_json:nodejs:check_package_json_script:__NODEJS_PM__ run \$MODULE_CMD
 composer:php:check_composer_script:composer run-script \$MODULE_CMD
 pyproject:python:check_pyproject_script:poetry run \$MODULE_CMD
 nodejs_bin:nodejs:check_nodejs_bin:npx \$MODULE_CMD
@@ -104,6 +105,13 @@ echo "$PRIORITY_CHECKS" | while read -r check_line; do
 	if $func "$MODULE_PATH" "$MODULE_CMD" 2>/dev/null; then
 		# Команда найдена - выполняем через stack runner
 
+		# Замена placeholder для nodejs пакетного менеджера
+		nodejs_pm_detected=""
+		if echo "$exec_cmd" | grep -q "__NODEJS_PM__"; then
+			nodejs_pm_detected=$(detect_nodejs_manager "$MODULE_PATH")
+			exec_cmd=$(echo "$exec_cmd" | sed "s/__NODEJS_PM__/$nodejs_pm_detected/g")
+		fi
+
 		# Раскрываем переменные в команде для отображения
 		eval "display_cmd=\"$(eval echo \"$exec_cmd\")\""
 		# shellcheck disable=SC2154
@@ -111,6 +119,13 @@ echo "$PRIORITY_CHECKS" | while read -r check_line; do
 
 		# Раскрываем переменные для выполнения
 		eval "full_cmd=\"$(eval echo \"$exec_cmd\")\""
+
+		# Для npm нужно добавить -- перед аргументами для правильной передачи в скрипт
+		# Для bun, pnpm, yarn аргументы передаются напрямую
+		args_with_separator="$MODULE_ARGS"
+		if [ "$nodejs_pm_detected" = "npm" ] && [ -n "$MODULE_ARGS" ]; then
+			args_with_separator="-- $MODULE_ARGS"
+		fi
 
 		# Определяем основную технологию (берем первую из списка)
 		primary_tech=$(echo "$MODULE_TECH" | awk '{print $1}')
@@ -121,7 +136,7 @@ echo "$PRIORITY_CHECKS" | while read -r check_line; do
 
 		# Выполняем команду через stack runner с fallback в контейнер
 		# shellcheck disable=SC2086,SC2154
-		run_stack_command "$primary_tech" "$MODULE_PATH_ABS" "$full_cmd $MODULE_ARGS"
+		run_stack_command "$primary_tech" "$MODULE_PATH_ABS" "$full_cmd $args_with_separator"
 		exit_code=$?
 		echo "$exit_code" > "$exit_file"
 		exit $exit_code

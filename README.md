@@ -254,15 +254,22 @@ make help                  # Все команды
 ### Работа с субмодулями
 
 ```bash
-# Обновить все субмодули до последних версий
-git submodule update --remote --merge
+# Инициализация и обновление всех субмодулей
+make module pull
 
 # Проверить статус всех субмодулей
-git submodule foreach 'git status'
+make module status
 
-# Переключить субмодуль на другую ветку
+# Отправить изменения во все субмодули
+make module push
+
+# Работа с отдельным субмодулем
 cd modules/my-service
 git checkout develop
+
+# Или через команду шаблона для отдельного модуля
+make my-service pull    # Обновить один модуль
+make my-service push    # Отправить изменения одного модуля
 ```
 
 ---

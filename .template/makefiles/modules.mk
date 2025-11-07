@@ -15,7 +15,7 @@ MODULE_NAME ?=
 # Получить подкоманду (первый аргумент после module)
 MODULE_CMD := $(word 2,$(MAKECMDGOALS))
 
-## module: Команды управления модулями (create, import)
+## module: Команды управления модулями (create, import, pull, push, status)
 .PHONY: module
 module:
 	@if [ -z "$(MODULE_CMD)" ]; then \
@@ -24,9 +24,15 @@ module:
 		$(MAKE) module-create MODULE_STACK="$(MODULE_STACK)" MODULE_TYPE="$(MODULE_TYPE)" MODULE_NAME="$(MODULE_NAME)" MODULE_TARGET="$(MODULE_TARGET)" || exit $$?; \
 	elif [ "$(MODULE_CMD)" = "import" ]; then \
 		$(MAKE) module-import MODULE_GIT_URL="$(URL)" MODULE_NAME="$(NAME)" MODULE_GIT_BRANCH="$(BRANCH)" MODULE_TARGET="$(MODULE_TARGET)" || exit $$?; \
+	elif [ "$(MODULE_CMD)" = "pull" ]; then \
+		$(call run-script,.template/scripts/module/bulk.sh,pull); \
+	elif [ "$(MODULE_CMD)" = "push" ]; then \
+		$(call run-script,.template/scripts/module/bulk.sh,push); \
+	elif [ "$(MODULE_CMD)" = "status" ]; then \
+		$(call run-script,.template/scripts/module/bulk.sh,status); \
 	else \
 		printf "$(COLOR_ERROR)✗$(COLOR_RESET) Неизвестная подкоманда: $(MODULE_CMD)\n" >&2; \
-		printf "$(COLOR_INFO)ℹ$(COLOR_RESET) Доступны: create, import\n"; \
+		printf "$(COLOR_INFO)ℹ$(COLOR_RESET) Доступны: create, import, pull, push, status\n"; \
 		exit 1; \
 	fi
 
@@ -48,9 +54,9 @@ module-import:
 	export MODULE_TARGET="$(MODULE_TARGET)"; \
 	$(call run-script,.template/scripts/module/import.sh)
 
-# Stub targets для подавления ошибок Make при вызове `make module create/import`
-.PHONY: create import
-create import:
+# Stub targets для подавления ошибок Make при вызове `make module create/import/pull/push/status`
+.PHONY: create import pull push status
+create import pull push status:
 	@:
 
 # ===================================

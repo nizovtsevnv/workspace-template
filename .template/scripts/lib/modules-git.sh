@@ -225,8 +225,7 @@ module_smart_push() {
 	printf "\n"
 
 	# Запрашиваем commit message
-	log_info "Введите commit message:"
-	read -r commit_msg
+	commit_msg=$(ask_input "Commit message")
 
 	if [ -z "$commit_msg" ]; then
 		log_error "Commit message не может быть пустым"
@@ -319,13 +318,24 @@ module_convert() {
 
 		# Запрашиваем URL если не указан
 		if [ -z "$git_url" ]; then
-			log_info "Введите URL удаленного git репозитория:"
-			read -r git_url
+			printf "\n"
+			git_url=$(ask_input "URL удалённого git репозитория")
 
 			if [ -z "$git_url" ]; then
 				log_error "URL не может быть пустым"
 				return 1
 			fi
+
+			# Базовая валидация URL
+			case "$git_url" in
+				git@*|https://*)
+					# Валидный URL
+					;;
+				*)
+					log_error "Неверный формат URL. Ожидается git@... или https://..."
+					return 1
+					;;
+			esac
 		fi
 
 		printf "\n"

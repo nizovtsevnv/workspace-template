@@ -99,15 +99,33 @@ ifneq ($(filter $(FIRST_GOAL),$(MODULE_NAMES)),)
   # Создаем stub targets для всех аргументов после имени модуля,
   # чтобы Make не пытался выполнить их как отдельные команды
   # (например, при `make site init` не должен выполняться корневой init)
+  #
+  # Исключаем аргументы с двоеточием (например, migration:new),
+  # так как Make не может создать target с : в имени
   ifneq ($(SECOND_GOAL),)
-    .PHONY: $(SECOND_GOAL)
-    $(SECOND_GOAL):
+    ifeq ($(findstring :,$(SECOND_GOAL)),)
+      .PHONY: $(SECOND_GOAL)
+      $(SECOND_GOAL):
 	@:
+    endif
   endif
 
+  # Фильтруем аргументы без двоеточия для создания stub targets
   ifneq ($(REST_GOALS),)
-    .PHONY: $(REST_GOALS)
-    $(REST_GOALS):
+    SAFE_REST_GOALS := $(filter-out %:%,$(REST_GOALS))
+    ifneq ($(SAFE_REST_GOALS),)
+      .PHONY: $(SAFE_REST_GOALS)
+      $(SAFE_REST_GOALS):
 	@:
+    endif
   endif
 endif
+
+# ===================================
+# Catch-all правило для неизвестных целей
+# ===================================
+# Используется когда команда модуля содержит спецсимволы (например, migration:new),
+# которые Make не может обработать как обычные target names.
+# Это правило применяется только к целям, для которых нет других правил.
+.DEFAULT:
+	@:

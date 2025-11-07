@@ -186,6 +186,45 @@ module_smart_pull() {
 	printf "  %s\n" "git commit -m \"chore: update $module_name submodule\""
 }
 
+# Тихая версия pull для массовых операций
+# Параметры: $1 - имя модуля, $2 - путь к модулю
+# Использование: module_smart_pull_quiet "mymodule" "modules/mymodule"
+module_smart_pull_quiet() {
+	local module_name="$1"
+	local module_path="$2"
+
+	# Проверяем что модуль - submodule
+	if ! is_git_submodule "$module_path"; then
+		return 1
+	fi
+
+	local branch
+	branch=$(get_submodule_branch "$module_path")
+
+	# Переходим в модуль
+	cd "$WORKSPACE_ROOT/$module_path" || return 1
+
+	# Проверяем uncommitted changes
+	if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+		cd "$WORKSPACE_ROOT" || return 1
+		return 1
+	fi
+
+	# Pull из удаленного репозитория (тихо, показываем только ошибки)
+	if ! git pull origin "$branch" >/dev/null 2>&1; then
+		cd "$WORKSPACE_ROOT" || return 1
+		return 1
+	fi
+
+	# Возвращаемся в workspace root
+	cd "$WORKSPACE_ROOT" || return 1
+
+	# Обновляем ссылку на submodule
+	git add "$module_path" 2>/dev/null
+
+	return 0
+}
+
 # Умный push: commit + push + обновление workspace
 # Параметры: $1 - имя модуля, $2 - путь к модулю
 # Использование: module_smart_push "mymodule" "modules/mymodule"

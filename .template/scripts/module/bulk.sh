@@ -109,29 +109,28 @@ case "$BULK_CMD" in
 			if is_submodule_initialized "$module_path"; then
 				# Субмодуль уже инициализирован - обновляем
 				initialized=$((initialized + 1))
-				log_info "Обновление $module_name..."
 
-				if module_smart_pull "$module_name" "$module_path"; then
+				if show_spinner "Обновление $module_name" \
+					module_smart_pull_quiet "$module_name" "$module_path"; then
 					updated=$((updated + 1))
 				else
 					failed=$((failed + 1))
+					log_error "Не удалось обновить $module_name"
 				fi
 			else
 				# Субмодуль не инициализирован - инициализируем
-				log_info "Инициализация $module_name..."
-
-				if show_spinner "git submodule update --init" \
+				if show_spinner "Инициализация $module_name" \
 					git submodule update --init "$module_path" 2>&1; then
 					initialized=$((initialized + 1))
 					updated=$((updated + 1))
-					log_success "Модуль $module_name инициализирован"
 				else
 					failed=$((failed + 1))
 					log_error "Не удалось инициализировать $module_name"
 				fi
 			fi
-			printf "\n"
 		done
+
+		printf "\n"
 
 		# Итоговый отчёт
 		log_section "Результат"

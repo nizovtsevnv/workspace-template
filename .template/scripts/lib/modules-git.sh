@@ -330,24 +330,78 @@ module_convert() {
 
 		printf "\n"
 
-		# Инициализируем git в модуле
-		log_info "Инициализация git репозитория..."
+		# Переходим в модуль
 		cd "$WORKSPACE_ROOT/$module_path" || return 1
 
-		git init || return 1
-		git add -A || return 1
-		git commit -m "Initial commit" || return 1
-		git branch -M main || return 1
-		git remote add origin "$git_url" || return 1
+		# Проверяем есть ли незакоммиченные изменения
+		if [ -d ".git" ]; then
+			if ! git diff-index --quiet HEAD -- 2>/dev/null || [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]; then
+				log_warning "В модуле есть незакоммиченные изменения!"
+				log_info "Закоммитьте или stash их перед конвертацией"
+				git status --short
+				return 1
+			fi
+		fi
+
+		# Настройка git репозитория
+		if [ -d ".git" ]; then
+			# Репозиторий уже существует
+			log_info "Git репозиторий уже существует, используем его..."
+
+			# Проверяем есть ли коммиты
+			if ! git rev-parse HEAD >/dev/null 2>&1; then
+				# Нет коммитов - создаем initial
+				log_info "Создание initial commit..."
+				git add -A || return 1
+				git commit -m "Initial commit" || return 1
+			fi
+
+			# Получаем текущую ветку
+			branch=$(git branch --show-current 2>/dev/null || echo "main")
+			if [ -z "$branch" ]; then
+				branch="main"
+			fi
+
+			# Проверяем remote origin
+			if git remote get-url origin >/dev/null 2>&1; then
+				current_url=$(git remote get-url origin)
+				if [ "$current_url" != "$git_url" ]; then
+					log_warning "Remote origin уже существует: $current_url"
+					log_info "Обновляем на: $git_url"
+					git remote set-url origin "$git_url" || return 1
+				else
+					log_info "Remote origin уже настроен"
+				fi
+			else
+				log_info "Добавление remote origin..."
+				git remote add origin "$git_url" || return 1
+			fi
+		else
+			# Новый репозиторий
+			log_info "Инициализация git репозитория..."
+			git init || return 1
+			git add -A || return 1
+			git commit -m "Initial commit" || return 1
+			git branch -M main || return 1
+			git remote add origin "$git_url" || return 1
+			branch="main"
+		fi
 
 		# Пытаемся отправить в удаленный репозиторий
 		log_info "Отправка в удаленный репозиторий..."
-		if ! git push -u origin main; then
+		if ! git push -u origin "$branch" 2>&1; then
 			log_warning "Не удалось отправить в удаленный репозиторий"
-			log_info "Возможно, репозиторий не существует. Создайте его вручную:"
-			log_info "  $git_url"
-			log_info "Затем выполните:"
-			log_info "  cd $module_path && git push -u origin main"
+			log_info "Возможные причины:"
+			log_info "  • Репозиторий не существует: создайте его вручную"
+			log_info "  • Нет прав доступа: проверьте SSH ключи или токен"
+			log_info "  • Ветка уже существует: используйте git push --force-with-lease"
+			printf "\n"
+			log_info "URL репозитория: $git_url"
+			log_info "Ветка: $branch"
+			printf "\n"
+			log_info "Попробуйте выполнить вручную:"
+			log_info "  cd $module_path"
+			log_info "  git push -u origin $branch"
 			return 1
 		fi
 
@@ -358,7 +412,7 @@ module_convert() {
 		log_info "Конвертация в git submodule..."
 		mv "$module_path" "${module_path}.backup" || return 1
 
-		if ! git submodule add -b main "$git_url" "$module_path"; then
+		if ! git submodule add -b "$branch" "$git_url" "$module_path"; then
 			log_error "Не удалось добавить submodule"
 			mv "${module_path}.backup" "$module_path"
 			return 1

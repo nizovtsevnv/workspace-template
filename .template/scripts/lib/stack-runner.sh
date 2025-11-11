@@ -113,6 +113,7 @@ _run_stack_generic() {
 	# Выполняем команду в контейнере
 	# shellcheck disable=SC2086,SC2046
 	$CONTAINER_RUNTIME run --rm \
+		--network host \
 		--user "$(id -u):$(id -g)" \
 		-v "$workspace_root:/workspace" \
 		$extra_mounts \

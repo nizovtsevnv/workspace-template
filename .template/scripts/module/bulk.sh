@@ -343,10 +343,13 @@ case "$BULK_CMD" in
 		# Проверяем статус синхронизации workspace
 		workspace_sync=$(get_sync_status "$WORKSPACE_ROOT")
 		workspace_has_changes=""
+		workspace_has_changes_display=""
 		if has_uncommitted_changes "$WORKSPACE_ROOT"; then
 			workspace_has_changes="есть"
+			workspace_has_changes_display="${COLOR_WARNING}⚠ есть${COLOR_RESET}"
 		else
 			workspace_has_changes="нет"
+			workspace_has_changes_display="${COLOR_SUCCESS}✓ нет${COLOR_RESET}"
 		fi
 
 		workspace_ahead=$(count_commits_ahead "$WORKSPACE_ROOT")
@@ -373,7 +376,7 @@ case "$BULK_CMD" in
 				;;
 		esac
 
-		printf "  Изменения вне коммитов: ${COLOR_WARNING}⚠ %s${COLOR_RESET}\n" "$workspace_has_changes"
+		printf "  Изменения вне коммитов: %s\n" "$workspace_has_changes_display"
 		printf "\n"
 
 		# Получаем список всех субмодулей
@@ -388,7 +391,7 @@ case "$BULK_CMD" in
 		printf "\n"
 
 		# Заголовок таблицы
-		printf "${COLOR_DIM}%-16s %-16s %-16s %-16s %s${COLOR_RESET}\n" \
+		printf "${COLOR_DIM}%-16s %-16s %-18s %-16s %s${COLOR_RESET}\n" \
 			"Модуль" "Ветка" "Вне коммитов" "Коммиты" "Статус"
 
 		# Формируем данные для каждого субмодуля
@@ -398,7 +401,7 @@ case "$BULK_CMD" in
 			if ! is_submodule_initialized "$module_path"; then
 				# Не инициализирован
 				branch=$(get_submodule_branch "$module_path")
-				printf "%-16s %-16s %-16s %-16s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
+				printf "%-16s %-16s %-18s %-16s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
 					"$module_name" \
 					"$branch" \
 					"-" \
@@ -430,7 +433,7 @@ case "$BULK_CMD" in
 
 			if [ -n "$expected_commit" ] && [ -n "$actual_commit" ] && [ "$expected_commit" != "$actual_commit" ]; then
 				# Субмодуль не синхронизирован с workspace
-				printf "%-16s %-16s %-16s %-16s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+				printf "%-16s %-16s %-18s %-16s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 					"$module_name" "$branch" "$changes" "workspace" "требуется git add и commit"
 				continue
 			fi
@@ -439,23 +442,23 @@ case "$BULK_CMD" in
 			# Формат: MODULE BRANCH SYNC STATUS CHANGES
 			case "$sync_status" in
 				synced)
-					printf "%-16s %-16s %-16s %-16s ${COLOR_SUCCESS}%s${COLOR_RESET}\n" \
+					printf "%-16s %-16s %-18s %-16s ${COLOR_SUCCESS}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "-" "синхронизировано"
 					;;
 				ahead)
-					printf "%-16s %-16s %-16s %-16s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+					printf "%-16s %-16s %-18s %-16s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${ahead}↑" "make modules push"
 					;;
 				behind)
-					printf "%-16s %-16s %-16s %-16s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+					printf "%-16s %-16s %-18s %-16s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${behind}↓" "make modules pull"
 					;;
 				diverged)
-					printf "%-16s %-16s %-16s %-16s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
+					printf "%-16s %-16s %-18s %-16s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${ahead}↑${behind}↓" "make modules sync"
 					;;
 				no-remote)
-					printf "%-16s %-16s %-16s %-16s ${COLOR_DIM}%s${COLOR_RESET}\n" \
+					printf "%-16s %-16s %-18s %-16s ${COLOR_DIM}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "-" "не отслеживается"
 					;;
 			esac

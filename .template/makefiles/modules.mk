@@ -15,7 +15,7 @@ MODULE_NAME ?=
 # Получить подкоманду (первый аргумент после modules)
 MODULE_CMD := $(word 2,$(MAKECMDGOALS))
 
-## modules: Команды управления модулями (create, import, pull, push, status)
+## modules: Команды управления модулями (create, import, pull, push, sync, status)
 .PHONY: modules
 modules:
 	@if [ -z "$(MODULE_CMD)" ]; then \
@@ -28,11 +28,13 @@ modules:
 		$(call run-script,.template/scripts/module/bulk.sh,pull); \
 	elif [ "$(MODULE_CMD)" = "push" ]; then \
 		$(call run-script,.template/scripts/module/bulk.sh,push); \
+	elif [ "$(MODULE_CMD)" = "sync" ]; then \
+		$(call run-script,.template/scripts/module/bulk.sh,sync); \
 	elif [ "$(MODULE_CMD)" = "status" ]; then \
 		$(call run-script,.template/scripts/module/bulk.sh,status); \
 	else \
 		printf "$(COLOR_ERROR)✗$(COLOR_RESET) Неизвестная подкоманда: $(MODULE_CMD)\n" >&2; \
-		printf "$(COLOR_INFO)ℹ$(COLOR_RESET) Доступны: create, import, pull, push, status\n"; \
+		printf "$(COLOR_INFO)ℹ$(COLOR_RESET) Доступны: create, import, pull, push, sync, status\n"; \
 		exit 1; \
 	fi
 
@@ -54,9 +56,9 @@ modules-import:
 	export MODULE_TARGET="$(MODULE_TARGET)"; \
 	$(call run-script,.template/scripts/module/import.sh)
 
-# Stub targets для подавления ошибок Make при вызове `make modules create/import/pull/push`
-.PHONY: create import pull push
-create import pull push:
+# Stub targets для подавления ошибок Make при вызове `make modules create/import/pull/push/sync/status`
+.PHONY: create import pull push sync
+create import pull push sync:
 	@:
 
 # ===================================

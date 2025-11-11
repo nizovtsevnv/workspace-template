@@ -24,6 +24,7 @@ if [ -z "$BULK_CMD" ]; then
 	log_info "Использование:"
 	printf "make modules pull<COL>Инициализация и обновление всех субмодулей\n" | print_table 20
 	printf "make modules push<COL>Отправка изменений во все субмодули\n" | print_table 20
+	printf "make modules sync<COL>Синхронизация в обоих направлениях (pull + push)\n" | print_table 20
 	printf "make modules status<COL>Статус всех субмодулей\n" | print_table 20
 	exit 1
 fi
@@ -387,8 +388,8 @@ case "$BULK_CMD" in
 		printf "\n"
 
 		# Заголовок таблицы
-		printf "${COLOR_DIM}%-16s %-10s %-15s %-8s %s${COLOR_RESET}\n" \
-			"MODULE" "BRANCH" "STATUS" "CHANGES" "SYNC"
+		printf "${COLOR_DIM}%-16s %-10s %-10s %-35s %s${COLOR_RESET}\n" \
+			"MODULE" "BRANCH" "SYNC" "STATUS" "CHANGES"
 
 		# Формируем данные для каждого субмодуля
 		for module_path in $submodules; do
@@ -397,11 +398,11 @@ case "$BULK_CMD" in
 			if ! is_submodule_initialized "$module_path"; then
 				# Не инициализирован
 				branch=$(get_submodule_branch "$module_path")
-				printf "%-16s %-10s ${COLOR_ERROR}%-15s${COLOR_RESET} %-8s %s\n" \
+				printf "%-16s %-10s %-10s ${COLOR_ERROR}%-35s${COLOR_RESET} %s\n" \
 					"$module_name" \
 					"$branch" \
-					"✗ not init" \
 					"-" \
+					"не инициализирован" \
 					"-"
 				continue
 			fi
@@ -418,53 +419,180 @@ case "$BULK_CMD" in
 			behind=$(count_commits_behind "$module_path_abs")
 
 			if has_uncommitted_changes "$module_path_abs"; then
-				changes="yes"
+				changes="есть незакоммиченные изменения"
 			else
 				changes="-"
 			fi
 
 			# Выводим строку таблицы с цветами
+			# Формат: MODULE BRANCH SYNC STATUS CHANGES
 			case "$sync_status" in
 				synced)
-					printf "%-16s %-10s ${COLOR_SUCCESS}%-15s${COLOR_RESET} %-8s %s\n" \
-						"$module_name" "$branch" "✓ synced" "$changes" "-"
+					printf "%-16s %-10s %-10s ${COLOR_SUCCESS}%-35s${COLOR_RESET} %s\n" \
+						"$module_name" "$branch" "-" "синхронизировано" "$changes"
 					;;
 				ahead)
-					printf "%-16s %-10s ${COLOR_WARNING}%-15s${COLOR_RESET} %-8s %s\n" \
-						"$module_name" "$branch" "⚠ ahead" "$changes" "${ahead}↑"
+					printf "%-16s %-10s %-10s ${COLOR_WARNING}%-35s${COLOR_RESET} %s\n" \
+						"$module_name" "$branch" "${ahead}↑" "требуется make modules push" "$changes"
 					;;
 				behind)
-					printf "%-16s %-10s ${COLOR_WARNING}%-15s${COLOR_RESET} %-8s %s\n" \
-						"$module_name" "$branch" "⚠ behind" "$changes" "${behind}↓"
+					printf "%-16s %-10s %-10s ${COLOR_WARNING}%-35s${COLOR_RESET} %s\n" \
+						"$module_name" "$branch" "${behind}↓" "требуется make modules pull" "$changes"
 					;;
 				diverged)
-					printf "%-16s %-10s ${COLOR_ERROR}%-15s${COLOR_RESET} %-8s %s\n" \
-						"$module_name" "$branch" "⚠ diverged" "$changes" "${ahead}↑${behind}↓"
+					printf "%-16s %-10s %-10s ${COLOR_ERROR}%-35s${COLOR_RESET} %s\n" \
+						"$module_name" "$branch" "${ahead}↑${behind}↓" "требуется make modules sync" "$changes"
 					;;
 				no-remote)
-					printf "%-16s %-10s ${COLOR_DIM}%-15s${COLOR_RESET} %-8s %s\n" \
-						"$module_name" "$branch" "- no remote" "$changes" "-"
+					printf "%-16s %-10s %-10s ${COLOR_DIM}%-35s${COLOR_RESET} %s\n" \
+						"$module_name" "$branch" "-" "нет remote" "$changes"
 					;;
 			esac
 		done
 
 		printf "\n"
-		log_info "Легенда:"
-		printf "  ${COLOR_SUCCESS}✓ synced${COLOR_RESET}     - синхронизирован с remote\n"
-		printf "  ${COLOR_WARNING}⚠ ahead${COLOR_RESET}      - есть непушнутые коммиты\n"
-		printf "  ${COLOR_WARNING}⚠ behind${COLOR_RESET}     - есть необпулленные коммиты\n"
-		printf "  ${COLOR_ERROR}⚠ diverged${COLOR_RESET}   - есть изменения в обоих направлениях\n"
-		printf "  yes/-        - наличие uncommitted changes\n"
-		printf "  N↑           - N коммитов ahead (непушнуто)\n"
-		printf "  N↓           - N коммитов behind (необпуллено)\n"
+		log_info "Команды:"
+		printf "  make modules pull  - получить изменения из remote\n"
+		printf "  make modules push  - отправить изменения в remote\n"
+		printf "  make modules sync  - синхронизировать в обоих направлениях\n"
+		;;
+
+	sync)
+		log_section "Синхронизация workspace и субмодулей"
 		printf "\n"
-		log_info "Используйте: make modules pull - для синхронизации"
-		log_info "Используйте: make modules push - для отправки изменений"
+		log_info "Выполняется pull + push для разрешения diverged состояния"
+		printf "\n"
+
+		# Сначала pull
+		log_section "Шаг 1: Pull изменений"
+		printf "\n"
+
+		# Проверяем наличие uncommitted changes в workspace
+		if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+			log_error "Workspace содержит несохраненные изменения"
+			log_info "Закоммитьте или stash их перед синхронизацией"
+			exit 1
+		fi
+
+		# Получаем информацию о remote
+		if ! git fetch origin 2>/dev/null; then
+			log_warning "Не удалось получить обновления из origin"
+		else
+			LOCAL=$(git rev-parse HEAD 2>/dev/null)
+			REMOTE=$(git rev-parse @{u} 2>/dev/null)
+
+			if [ "$LOCAL" = "$REMOTE" ]; then
+				log_success "Workspace актуален"
+			else
+				if git pull --rebase origin "$(git branch --show-current)" 2>&1; then
+					log_success "Workspace обновлен"
+				else
+					log_error "Не удалось обновить workspace"
+					log_info "Разрешите конфликты и попробуйте снова"
+					exit 1
+				fi
+			fi
+		fi
+
+		# Синхронизация субмодулей
+		submodules=$(get_all_submodules)
+
+		if [ -z "$submodules" ]; then
+			log_info "Нет субмодулей для синхронизации"
+		else
+			for module_path in $submodules; do
+				module_name=$(basename "$module_path")
+
+				if ! is_submodule_initialized "$module_path"; then
+					continue
+				fi
+
+				log_info "Синхронизация $module_name..."
+				if module_smart_pull_quiet "$module_name" "$module_path"; then
+					log_success "$module_name обновлен"
+				else
+					log_warning "Не удалось обновить $module_name"
+				fi
+			done
+		fi
+
+		printf "\n"
+		log_section "Шаг 2: Push изменений"
+		printf "\n"
+
+		# Отправляем изменения (используем логику из push)
+		pushed=0
+		failed=0
+
+		for module_path in $submodules; do
+			module_name=$(basename "$module_path")
+
+			if ! is_submodule_initialized "$module_path"; then
+				continue
+			fi
+
+			module_path_abs="$WORKSPACE_ROOT/$module_path"
+			cd "$module_path_abs" || continue
+
+			# Проверяем есть ли изменения для отправки
+			if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+				log_info "Отправка $module_name..."
+
+				# Auto-commit uncommitted changes
+				if git add -A && git commit -m "chore: sync changes" 2>&1; then
+					if git push origin "$(get_submodule_branch "$module_path")" 2>&1; then
+						pushed=$((pushed + 1))
+						log_success "$module_name отправлен"
+					else
+						failed=$((failed + 1))
+						log_error "Не удалось отправить $module_name"
+					fi
+				fi
+			else
+				# Проверяем unpushed commits
+				ahead=$(count_commits_ahead "$module_path_abs")
+				if [ "$ahead" -gt 0 ]; then
+					log_info "Отправка $module_name ($ahead коммитов)..."
+					if git push origin "$(get_submodule_branch "$module_path")" 2>&1; then
+						pushed=$((pushed + 1))
+						log_success "$module_name отправлен"
+					else
+						failed=$((failed + 1))
+						log_error "Не удалось отправить $module_name"
+					fi
+				fi
+			fi
+
+			cd "$WORKSPACE_ROOT" || exit 1
+		done
+
+		# Отправка workspace
+		workspace_status=$(git status --porcelain 2>/dev/null)
+
+		if [ -n "$workspace_status" ]; then
+			log_info "Коммит изменений workspace..."
+			if git add . && git commit -m "chore: sync submodule references" 2>&1; then
+				log_success "Изменения закоммичены"
+			fi
+		fi
+
+		ahead=$(count_commits_ahead "$WORKSPACE_ROOT")
+		if [ "$ahead" -gt 0 ]; then
+			log_info "Отправка workspace в origin ($ahead коммитов)..."
+			if git push origin "$(git branch --show-current)" 2>&1; then
+				log_success "Workspace отправлен"
+			else
+				log_error "Не удалось отправить workspace"
+			fi
+		fi
+
+		printf "\n"
+		log_section "Синхронизация завершена"
 		;;
 
 	*)
 		log_error "Неизвестная команда: $BULK_CMD"
-		log_info "Доступные команды: pull, push, status"
+		log_info "Доступные команды: pull, push, sync, status"
 		exit 1
 		;;
 esac

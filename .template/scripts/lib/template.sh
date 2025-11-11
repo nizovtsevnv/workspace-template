@@ -129,7 +129,7 @@ create_project_readme() {
 		cat > README.md <<'EOF'
 # My Project
 
-Проект создан из [Workspace Template](https://github.com/nizovtsevnv/devcontainer-workspace)
+Проект создан из [Workspace Template](https://github.com/nizovtsevnv/workspace-template)
 EOF
 		log_success "README.md создан"
 	fi

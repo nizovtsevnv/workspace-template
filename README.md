@@ -220,10 +220,10 @@ docker --version
 podman --version
 
 # Пересобрать образ вручную
-podman build -t devcontainer-nodejs -f .template/dockerfiles/nodejs.Dockerfile .template/dockerfiles/
+podman build -t workspace-stack-nodejs -f .template/dockerfiles/nodejs.Dockerfile .template/dockerfiles/
 
 # Или удалить и пересобрать автоматически
-podman rmi devcontainer-nodejs
+podman rmi workspace-stack-nodejs
 make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=test
 ```
 
@@ -311,6 +311,6 @@ make my-service push    # Отправить изменения одного м�
 
 ## 🔗 Ссылки
 
-- [Репозиторий шаблона](https://github.com/nizovtsevnv/devcontainer-workspace)
+- [Репозиторий шаблона](https://github.com/nizovtsevnv/workspace-template)
 - [Git Submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
 - [Alpine Linux](https://alpinelinux.org/)

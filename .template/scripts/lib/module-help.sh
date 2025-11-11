@@ -76,11 +76,10 @@ show_module_help() {
 		log_info "Обслуживание модуля:"
 		printf "make %s pull<COL>Синхронизация с удаленным репозиторием\n" "$MODULE_NAME" | print_table 40
 		printf "make %s push<COL>Отправка изменений\n" "$MODULE_NAME" | print_table 40
-		printf "make %s git <cmd><COL>Выполнить git команду (status, log, checkout...)\n" "$MODULE_NAME" | print_table 40
 		printf "make %s convert<COL>Конвертировать в локальный модуль\n" "$MODULE_NAME" | print_table 40
 	else
 		log_info "Обслуживание модуля:"
-		printf "make %s convert URL=...<COL>Конвертировать в git submodule\n" "$MODULE_NAME" | print_table 40
+		printf "make %s convert<COL>Конвертировать в git submodule\n" "$MODULE_NAME" | print_table 40
 	fi
 
 	# Показать секции команд в зависимости от стека

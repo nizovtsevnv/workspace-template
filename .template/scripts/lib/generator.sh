@@ -27,7 +27,7 @@ fi
 # Возвращает: 0 если успешно, 1 если ошибка
 ensure_generator_image() {
 	stack="$1"
-	image_name="devcontainer-$stack"
+	image_name="workspace-stack-$stack"
 	dockerfile_path=".template/dockerfiles/$stack.Dockerfile"
 
 	# Получить workspace root
@@ -119,7 +119,7 @@ run_generator() {
 		-w /workspace \
 		-e "HOST_UID=$(id -u)" \
 		-e "HOST_GID=$(id -g)" \
-		"devcontainer-$stack" \
+		"workspace-stack-$stack" \
 		"$generator_script" "$@"
 
 	return $?
@@ -184,7 +184,7 @@ run_generator_interactive() {
 		-w /workspace \
 		-e "HOST_UID=$(id -u)" \
 		-e "HOST_GID=$(id -g)" \
-		"devcontainer-$stack" \
+		"workspace-stack-$stack" \
 		"$generator_script" "$@"
 
 	return $?

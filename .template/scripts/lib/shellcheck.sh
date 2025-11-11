@@ -11,7 +11,7 @@
 # - run_yq: запуск yq для парсинга YAML
 
 # Имя образа для shell-утилит (включает shellcheck, jq, yq, bash, curl, git)
-readonly SH_TOOLS_IMAGE="devcontainer-sh"
+readonly SH_TOOLS_IMAGE="workspace-stack-sh"
 readonly SH_TOOLS_DOCKERFILE=".template/dockerfiles/sh.Dockerfile"
 
 # Для обратной совместимости
@@ -108,7 +108,7 @@ run_shellcheck() {
 # ===================================
 # Универсальная функция запуска инструмента из sh образа
 # ===================================
-# Запускает любой инструмент из образа devcontainer-sh
+# Запускает любой инструмент из образа workspace-stack-sh
 # Параметры:
 #   $1 - имя инструмента (jq, yq, bash, git, curl, etc.)
 #   $@ - остальные параметры передаются инструменту

@@ -12,7 +12,7 @@ set -e
 . "$SCRIPT_DIR/lib/shellcheck.sh"
 
 # Директория для тестов
-TEST_DIR="${TEST_DIR:-/tmp/devcontainer-workspace}"
+TEST_DIR="${TEST_DIR:-/tmp/workspace-template}"
 
 # ===================================
 # Вспомогательные функции

@@ -147,7 +147,7 @@ module_smart_pull() {
 	# Проверяем что модуль - submodule
 	if ! is_git_submodule "$module_path"; then
 		log_error "Модуль '$module_name' не является git submodule"
-		log_info "Используйте: make $module_name convert URL=<url> для конвертации"
+		log_info "Используйте: make $module_name convert для конвертации"
 		return 1
 	fi
 
@@ -239,7 +239,7 @@ module_smart_push() {
 	# Проверяем что модуль - submodule
 	if ! is_git_submodule "$module_path"; then
 		log_error "Модуль '$module_name' не является git submodule"
-		log_info "Используйте: make $module_name convert URL=<url> для конвертации"
+		log_info "Используйте: make $module_name convert для конвертации"
 		return 1
 	fi
 

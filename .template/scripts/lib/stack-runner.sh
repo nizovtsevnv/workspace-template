@@ -81,37 +81,37 @@ _run_stack_generic() {
 # Node.js stack
 # Использование: run_nodejs "." "npm install"
 run_nodejs() {
-	_run_stack_generic "nodejs" "node" "devcontainer-nodejs" "$@"
+	_run_stack_generic "nodejs" "node" "workspace-stack-nodejs" "$@"
 }
 
 # PHP stack
 # Использование: run_php "." "composer install"
 run_php() {
-	_run_stack_generic "php" "php" "devcontainer-php" "$@"
+	_run_stack_generic "php" "php" "workspace-stack-php" "$@"
 }
 
 # Python stack
 # Использование: run_python "." "pip install -r requirements.txt"
 run_python() {
-	_run_stack_generic "python" "python3" "devcontainer-python" "$@"
+	_run_stack_generic "python" "python3" "workspace-stack-python" "$@"
 }
 
 # Rust stack
 # Использование: run_rust "." "cargo build"
 run_rust() {
-	_run_stack_generic "rust" "cargo" "devcontainer-rust" "$@"
+	_run_stack_generic "rust" "cargo" "workspace-stack-rust" "$@"
 }
 
 # C stack
 # Использование: run_c "." "make"
 run_c() {
-	_run_stack_generic "c" "gcc" "devcontainer-c" "$@"
+	_run_stack_generic "c" "gcc" "workspace-stack-c" "$@"
 }
 
 # Zig stack
 # Использование: run_zig "." "zig build"
 run_zig() {
-	_run_stack_generic "zig" "zig" "devcontainer-zig" "$@"
+	_run_stack_generic "zig" "zig" "workspace-stack-zig" "$@"
 }
 
 # ===================================

@@ -153,7 +153,7 @@ make modules create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool MODULE
 ```bash
 # Первый запуск - автоматическая сборка
 make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-app
-# 🔨 Сборка образа devcontainer-nodejs...
+# 🔨 Сборка образа workspace-stack-nodejs...
 # ✅ Образ собран успешно
 
 # Последующие запуски используют кеш
@@ -165,7 +165,7 @@ make modules create MODULE_STACK=nodejs MODULE_TYPE=npm MODULE_NAME=another-app
 
 ```bash
 # Удалить все образы генераторов
-podman rmi devcontainer-{nodejs,python,rust,c,zig,php}
+podman rmi workspace-stack-{nodejs,python,rust,c,zig,php}
 
 # Или через функцию библиотеки
 . .template/scripts/lib/generator.sh
@@ -284,10 +284,10 @@ echo "✅ Модуль создан: $MODULE_TARGET/$MODULE_NAME"
 
 ```bash
 # Пересобрать образ вручную
-podman build -t devcontainer-nodejs -f .template/dockerfiles/nodejs.Dockerfile .template/dockerfiles/
+podman build -t workspace-stack-nodejs -f .template/dockerfiles/nodejs.Dockerfile .template/dockerfiles/
 
 # Или удалить и пересобрать автоматически
-podman rmi devcontainer-nodejs
+podman rmi workspace-stack-nodejs
 make modules create MODULE_STACK=nodejs ...
 ```
 

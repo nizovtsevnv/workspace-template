@@ -524,7 +524,7 @@ shellcheck .template/scripts/*.sh
 shellcheck .template/scripts/lib/*.sh
 ```
 
-**Примечание:** При первом запуске без хостового shellcheck будет собран Alpine образ `devcontainer-sh` (включает shellcheck, jq, yq, bash, curl, git). Образ кешируется и переиспользуется при последующих запусках.
+**Примечание:** При первом запуске без хостового shellcheck будет собран Alpine образ `workspace-stack-sh` (включает shellcheck, jq, yq, bash, curl, git). Образ кешируется и переиспользуется при последующих запусках.
 
 ### Smoke tests
 

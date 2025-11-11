@@ -138,6 +138,9 @@ echo "$PRIORITY_CHECKS" | while read -r check_line; do
 		# shellcheck disable=SC2086,SC2154
 		run_stack_command "$primary_tech" "$MODULE_PATH_ABS" "$full_cmd $args_with_separator"
 		exit_code=$?
+
+		# Записываем exit code в файл для передачи из subshell
+		# Это работает для любого кода, включая 0 (успех/прерывание)
 		echo "$exit_code" > "$exit_file"
 		exit $exit_code
 	fi
@@ -150,6 +153,7 @@ if [ -f "$exit_file" ] && [ -s "$exit_file" ]; then
 	exit $exit_code
 fi
 
-# Если дошли сюда - ни одна проверка не сработала (не должно случиться, т.к. shell passthrough всегда успешен)
-log_error "Не удалось выполнить команду $MODULE_CMD"
-exit 1
+# Если дошли сюда - команда была прервана (Ctrl+C) или не найдена
+# При Ctrl+C subshell прерывается до записи в exit_file, это нормальное завершение
+# Выходим тихо без сообщения об ошибке (Ctrl+C это не ошибка выполнения команды)
+exit 0

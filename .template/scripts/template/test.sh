@@ -43,12 +43,12 @@ show_spinner "Подготовка изолированной копии шаб�
 # Создание тестовых модулей
 log_section "Создание модулей пакетными менеджерами"
 
-show_spinner "Создание test-c" make --no-print-directory module create MODULE_STACK=c MODULE_TYPE=makefile MODULE_NAME=test-c MODULE_TARGET="$TEST_DIR/modules"
-show_spinner "Создание test-nodejs" make --no-print-directory module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=test-nodejs MODULE_TARGET="$TEST_DIR/modules"
-show_spinner "Создание test-php" make --no-print-directory module create MODULE_STACK=php MODULE_TYPE=composer-lib MODULE_NAME=test-php MODULE_TARGET="$TEST_DIR/modules"
-show_spinner "Создание test-python" make --no-print-directory module create MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=test-python MODULE_TARGET="$TEST_DIR/modules"
-show_spinner "Создание test-rust" make --no-print-directory module create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=test-rust MODULE_TARGET="$TEST_DIR/modules"
-show_spinner "Создание test-zig" make --no-print-directory module create MODULE_STACK=zig MODULE_TYPE=exe MODULE_NAME=test-zig MODULE_TARGET="$TEST_DIR/modules"
+show_spinner "Создание test-c" make --no-print-directory modules create MODULE_STACK=c MODULE_TYPE=makefile MODULE_NAME=test-c MODULE_TARGET="$TEST_DIR/modules"
+show_spinner "Создание test-nodejs" make --no-print-directory modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=test-nodejs MODULE_TARGET="$TEST_DIR/modules"
+show_spinner "Создание test-php" make --no-print-directory modules create MODULE_STACK=php MODULE_TYPE=composer-lib MODULE_NAME=test-php MODULE_TARGET="$TEST_DIR/modules"
+show_spinner "Создание test-python" make --no-print-directory modules create MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=test-python MODULE_TARGET="$TEST_DIR/modules"
+show_spinner "Создание test-rust" make --no-print-directory modules create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=test-rust MODULE_TARGET="$TEST_DIR/modules"
+show_spinner "Создание test-zig" make --no-print-directory modules create MODULE_STACK=zig MODULE_TYPE=exe MODULE_NAME=test-zig MODULE_TARGET="$TEST_DIR/modules"
 
 # Тестирование shell-скриптов статическим анализом
 log_section "Проверка качества shell-скриптов (shellcheck)"

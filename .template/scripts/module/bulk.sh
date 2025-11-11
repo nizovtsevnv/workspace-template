@@ -22,9 +22,9 @@ BULK_CMD="$1"
 if [ -z "$BULK_CMD" ]; then
 	log_error "Не указана команда"
 	log_info "Использование:"
-	printf "make module pull<COL>Инициализация и обновление всех субмодулей\n" | print_table 20
-	printf "make module push<COL>Отправка изменений во все субмодули\n" | print_table 20
-	printf "make module status<COL>Статус всех субмодулей\n" | print_table 20
+	printf "make modules pull<COL>Инициализация и обновление всех субмодулей\n" | print_table 20
+	printf "make modules push<COL>Отправка изменений во все субмодули\n" | print_table 20
+	printf "make modules status<COL>Статус всех субмодулей\n" | print_table 20
 	exit 1
 fi
 
@@ -84,7 +84,55 @@ get_submodule_commit() {
 
 case "$BULK_CMD" in
 	pull)
-		log_section "Синхронизация всех субмодулей"
+		log_section "Синхронизация workspace и субмодулей"
+		printf "\n"
+
+		# ===================================
+		# Шаг 1: Обновление workspace репозитория
+		# ===================================
+
+		log_info "Проверка обновлений workspace..."
+
+		# Проверяем наличие uncommitted changes
+		if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+			log_error "Workspace содержит несохраненные изменения"
+			log_info "Закоммитьте или отмените изменения перед обновлением"
+			printf "\n  git status\n  git add .\n  git commit -m \"...\"\n"
+			exit 1
+		fi
+
+		# Получаем информацию о remote
+		if ! git fetch origin 2>/dev/null; then
+			log_warning "Не удалось получить обновления из origin"
+			log_info "Продолжаем обновление субмодулей..."
+		else
+			# Проверяем наличие изменений
+			LOCAL=$(git rev-parse HEAD 2>/dev/null)
+			REMOTE=$(git rev-parse @{u} 2>/dev/null)
+
+			if [ "$LOCAL" = "$REMOTE" ]; then
+				log_success "Workspace актуален"
+			else
+				log_info "Обновление workspace..."
+
+				# Выполняем git pull
+				if git pull --rebase origin "$(git branch --show-current)" 2>&1; then
+					log_success "Workspace обновлен"
+				else
+					log_error "Не удалось обновить workspace"
+					log_info "Разрешите конфликты вручную и повторите"
+					exit 1
+				fi
+			fi
+		fi
+
+		printf "\n"
+
+		# ===================================
+		# Шаг 2: Синхронизация субмодулей
+		# ===================================
+
+		log_section "Синхронизация субмодулей"
 		printf "\n"
 
 		# Получаем список всех субмодулей
@@ -110,8 +158,9 @@ case "$BULK_CMD" in
 				# Субмодуль уже инициализирован - обновляем
 				initialized=$((initialized + 1))
 
-				if show_spinner "Обновление $module_name" \
-					module_smart_pull_quiet "$module_name" "$module_path"; then
+				log_info "Обновление $module_name..."
+				if module_smart_pull_quiet "$module_name" "$module_path"; then
+					log_success "$module_name обновлен"
 					updated=$((updated + 1))
 				else
 					failed=$((failed + 1))
@@ -119,8 +168,9 @@ case "$BULK_CMD" in
 				fi
 			else
 				# Субмодуль не инициализирован - инициализируем
-				if show_spinner "Инициализация $module_name" \
-					git submodule update --init "$module_path" 2>&1; then
+				log_info "Инициализация $module_name..."
+				if git submodule update --init "$module_path" 2>&1; then
+					log_success "$module_name инициализирован"
 					initialized=$((initialized + 1))
 					updated=$((updated + 1))
 				else
@@ -133,24 +183,16 @@ case "$BULK_CMD" in
 		printf "\n"
 
 		# Итоговый отчёт
-		log_section "Результат"
+		log_section "Результат синхронизации"
 		printf "  Всего субмодулей: %d\n" "$total"
 		printf "  Обновлено: ${COLOR_SUCCESS}%d${COLOR_RESET}\n" "$updated"
 		if [ "$failed" -gt 0 ]; then
 			printf "  Ошибок: ${COLOR_ERROR}%d${COLOR_RESET}\n" "$failed"
 		fi
-
-		# Напоминание про коммит workspace
-		if [ "$updated" -gt 0 ]; then
-			printf "\n"
-			log_info "Не забудьте закоммитить изменения в workspace:"
-			printf "  git add .\n"
-			printf "  git commit -m \"chore: update submodules\"\n"
-		fi
 		;;
 
 	push)
-		log_section "Отправка изменений во все субмодули"
+		log_section "Отправка изменений субмодулей и workspace"
 		printf "\n"
 
 		# Получаем список всех субмодулей
@@ -160,6 +202,13 @@ case "$BULK_CMD" in
 			log_warning "Субмодули не найдены в .gitmodules"
 			exit 0
 		fi
+
+		# ===================================
+		# Шаг 1: Отправка изменений субмодулей
+		# ===================================
+
+		log_section "Отправка изменений субмодулей"
+		printf "\n"
 
 		# Счётчики
 		total=0
@@ -182,6 +231,7 @@ case "$BULK_CMD" in
 
 			if git diff-index --quiet HEAD -- 2>/dev/null; then
 				# Нет изменений - пропускаем
+				log_info "$module_name: нет изменений"
 				skipped=$((skipped + 1))
 				cd "$WORKSPACE_ROOT" || return
 				continue
@@ -190,24 +240,27 @@ case "$BULK_CMD" in
 			cd "$WORKSPACE_ROOT" || return
 
 			# Есть изменения - выполняем push
-			log_info "Отправка изменений $module_name..."
+			log_info "Отправка $module_name..."
 
 			if module_smart_push "$module_name" "$module_path"; then
+				log_success "$module_name отправлен"
 				pushed=$((pushed + 1))
 			else
+				log_error "Не удалось отправить $module_name"
 				failed=$((failed + 1))
 			fi
-			printf "\n"
 		done
 
-		# Итоговый отчёт
-		log_section "Результат"
-		printf "  Проверено модулей: %d\n" "$total"
+		printf "\n"
+
+		# Итоговый отчёт по субмодулям
+		log_info "Результат отправки субмодулей:"
+		printf "  Проверено: %d\n" "$total"
 		if [ "$pushed" -gt 0 ]; then
 			printf "  Отправлено: ${COLOR_SUCCESS}%d${COLOR_RESET}\n" "$pushed"
 		fi
 		if [ "$skipped" -gt 0 ]; then
-			printf "  Пропущено (нет изменений): %d\n" "$skipped"
+			printf "  Пропущено: %d\n" "$skipped"
 		fi
 		if [ "$failed" -gt 0 ]; then
 			printf "  Ошибок: ${COLOR_ERROR}%d${COLOR_RESET}\n" "$failed"
@@ -215,7 +268,55 @@ case "$BULK_CMD" in
 
 		if [ "$total" -eq 0 ]; then
 			log_info "Нет инициализированных субмодулей"
+			exit 0
 		fi
+
+		# Прерываем если были ошибки
+		if [ "$failed" -gt 0 ]; then
+			log_warning "Отправка workspace отменена из-за ошибок в субмодулях"
+			exit 1
+		fi
+
+		printf "\n"
+
+		# ===================================
+		# Шаг 2: Обновление workspace репозитория
+		# ===================================
+
+		log_section "Синхронизация workspace"
+		printf "\n"
+
+		# Проверяем, изменились ли ссылки на субмодули
+		workspace_status=$(git status --porcelain 2>/dev/null)
+
+		if [ -z "$workspace_status" ]; then
+			log_success "Workspace актуален, изменений нет"
+			exit 0
+		fi
+
+		# Есть изменения - коммитим и отправляем
+		log_info "Обнаружены изменения ссылок на субмодули"
+		log_info "Коммит изменений workspace..."
+
+		if git add . && git commit -m "chore: update submodule references" 2>&1; then
+			log_success "Изменения закоммичены"
+		else
+			log_error "Не удалось создать коммит"
+			exit 1
+		fi
+
+		log_info "Отправка workspace в origin..."
+
+		if git push origin "$(git branch --show-current)" 2>&1; then
+			log_success "Workspace отправлен"
+		else
+			log_error "Не удалось отправить workspace"
+			log_info "Попробуйте вручную: git push"
+			exit 1
+		fi
+
+		printf "\n"
+		log_section "Синхронизация завершена"
 		;;
 
 	status)
@@ -261,7 +362,7 @@ case "$BULK_CMD" in
 		fi
 
 		printf "\n"
-		log_info "Используйте: make module pull - для инициализации и обновления"
+		log_info "Используйте: make modules pull - для инициализации и обновления"
 		;;
 
 	*)

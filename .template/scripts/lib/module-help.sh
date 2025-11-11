@@ -71,21 +71,15 @@ show_module_help() {
 	fi
 	printf "\n"
 
-	# Использование
-	log_info "Использование:"
-	printf "make $MODULE_NAME КОМАНДА [АРГУМЕНТЫ]<COL>Выполнение любых команд в папке модуля\n" | print_table 40
-
-	# Git команды (если модуль - git submodule)
+	# Git команды / Обслуживание модуля (в зависимости от типа)
 	if is_git_submodule "$MODULE_PATH"; then
-		printf "\n"
-		log_info "Git команды:"
+		log_info "Обслуживание модуля:"
 		printf "make %s pull<COL>Синхронизация с удаленным репозиторием\n" "$MODULE_NAME" | print_table 40
 		printf "make %s push<COL>Отправка изменений\n" "$MODULE_NAME" | print_table 40
 		printf "make %s git <cmd><COL>Выполнить git команду (status, log, checkout...)\n" "$MODULE_NAME" | print_table 40
 		printf "make %s convert<COL>Конвертировать в локальный модуль\n" "$MODULE_NAME" | print_table 40
 	else
-		printf "\n"
-		log_info "Конвертация:"
+		log_info "Обслуживание модуля:"
 		printf "make %s convert URL=...<COL>Конвертировать в git submodule\n" "$MODULE_NAME" | print_table 40
 	fi
 
@@ -101,17 +95,8 @@ show_module_help() {
 				# 1. Команды Makefile
 				show_makefile_section "$MODULE_PATH" "$MODULE_NAME" "$used_commands"
 
-				# 2. Пакетные менеджеры
-				printf "\n"
-				log_info "Пакетные менеджеры:"
-				for pm in bun npm pnpm yarn; do
-					if ! grep -q "^${pm}$" "$used_commands" 2>/dev/null; then
-						printf "make $MODULE_NAME %s<COL>\n" "$pm"
-						echo "$pm" >> "$used_commands"
-					fi
-				done | print_table 40
 
-			# 3. Команды package.json
+			# 2. Команды package.json
 			pkg_scripts=$(get_package_json_scripts "$MODULE_PATH")
 			if [ -n "$pkg_scripts" ]; then
 				printf "\n"
@@ -124,7 +109,7 @@ show_module_help() {
 				done | print_table 40
 			fi
 
-			# 4. Команды npx
+			# 3. Команды npx
 			npx_cmds=$(get_nodejs_bin_commands "$MODULE_PATH")
 			if [ -n "$npx_cmds" ]; then
 				printf "\n"
@@ -142,28 +127,8 @@ show_module_help() {
 				# 1. Команды Makefile
 				show_makefile_section "$MODULE_PATH" "$MODULE_NAME" "$used_commands"
 
-				# 2. Пакетные менеджеры
-				printf "\n"
-				log_info "Пакетные менеджеры:"
-				if ! grep -q "^composer$" "$used_commands" 2>/dev/null; then
-					printf "make $MODULE_NAME composer<COL>\n"
-					echo "composer" >> "$used_commands"
-				fi | print_table 40
 
-				# 3. Команды composer.json
-				composer_scripts=$(get_composer_json_scripts "$MODULE_PATH")
-				if [ -n "$composer_scripts" ]; then
-					printf "\n"
-					log_info "Команды composer.json:"
-					echo "$composer_scripts" | sort | while IFS='	' read -r name command; do
-						if ! grep -q "^${name}$" "$used_commands" 2>/dev/null; then
-							printf "make $MODULE_NAME %s<COL>%s\n" "$name" "$command"
-							echo "$name" >> "$used_commands"
-						fi
-					done | print_table 40
-				fi
-
-				# 4. Команды vendor/bin
+				# 2. Команды vendor/bin
 				vendor_cmds=$(get_php_bin_commands "$MODULE_PATH")
 				if [ -n "$vendor_cmds" ]; then
 					printf "\n"
@@ -181,15 +146,6 @@ show_module_help() {
 				# 1. Команды Makefile
 				show_makefile_section "$MODULE_PATH" "$MODULE_NAME" "$used_commands"
 
-				# 2. Пакетные менеджеры
-				printf "\n"
-				log_info "Пакетные менеджеры:"
-				for pm in pip pipenv poetry uv; do
-					if ! grep -q "^${pm}$" "$used_commands" 2>/dev/null; then
-						printf "make $MODULE_NAME %s<COL>\n" "$pm"
-						echo "$pm" >> "$used_commands"
-					fi
-				done | print_table 40
 
 				# 3. Команды pyproject.toml
 				pyproject_scripts=$(get_pyproject_scripts "$MODULE_PATH")
@@ -209,26 +165,6 @@ show_module_help() {
 				# 1. Команды Makefile
 				show_makefile_section "$MODULE_PATH" "$MODULE_NAME" "$used_commands"
 
-				# 2. Пакетные менеджеры
-				printf "\n"
-				log_info "Пакетные менеджеры:"
-				if ! grep -q "^cargo$" "$used_commands" 2>/dev/null; then
-					printf "make $MODULE_NAME cargo<COL>\n"
-					echo "cargo" >> "$used_commands"
-				fi | print_table 40
-
-				# 3. Бинарные targets
-				cargo_bins=$(get_cargo_bin_targets "$MODULE_PATH")
-				if [ -n "$cargo_bins" ]; then
-					printf "\n"
-					log_info "Бинарные targets:"
-					echo "$cargo_bins" | while read -r bin; do
-						if ! grep -q "^${bin}$" "$used_commands" 2>/dev/null; then
-							printf "make $MODULE_NAME %s<COL>\n" "$bin"
-							echo "$bin" >> "$used_commands"
-						fi
-					done | print_table 40
-				fi
 				;;
 		esac
 	done

@@ -32,9 +32,9 @@ check_project_init_status
 
 # Формируем данные для таблицы в зависимости от статуса инициализации
 if [ "$STATUS" = "не инициализирован" ]; then
-	commands_data="make init<COL>Инициализация проекта из шаблона<ROW>make module create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make module import<COL>Импортировать модуль из git репозитория<ROW>make module pull<COL>Инициализация и обновление всех субмодулей<ROW>make module status<COL>Статус всех субмодулей<ROW>make template status<COL>Показать статус и версию шаблона<ROW>make template update<COL>Обновить версию шаблона<ROW>make template test<COL>Запустить автотесты шаблона"
+	commands_data="make init<COL>Инициализация проекта из шаблона<ROW>make modules create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make modules import<COL>Импортировать модуль из git репозитория<ROW>make modules pull<COL>Инициализация и обновление всех субмодулей<ROW>make modules status<COL>Статус всех субмодулей<ROW>make template status<COL>Показать статус и версию шаблона<ROW>make template update<COL>Обновить версию шаблона<ROW>make template test<COL>Запустить автотесты шаблона"
 else
-	commands_data="make module create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make module import<COL>Импортировать модуль из git репозитория<ROW>make module pull<COL>Инициализация и обновление всех субмодулей<ROW>make module status<COL>Статус всех субмодулей<ROW>make template status<COL>Показать статус и версию шаблона<ROW>make template update<COL>Обновить версию шаблона<ROW>make template test<COL>Запустить автотесты шаблона"
+	commands_data="make modules create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make modules import<COL>Импортировать модуль из git репозитория<ROW>make modules pull<COL>Инициализация и обновление всех субмодулей<ROW>make modules status<COL>Статус всех субмодулей<ROW>make template status<COL>Показать статус и версию шаблона<ROW>make template update<COL>Обновить версию шаблона<ROW>make template test<COL>Запустить автотесты шаблона"
 fi
 
 printf "%s\n" "$commands_data" | print_table 24
@@ -92,7 +92,7 @@ printf "\n"
 if [ "$STATUS" = "не инициализирован" ]; then
 	log_info "Начало работы с проектом"
 	printf "  1. Инициализируйте проект: ${COLOR_SUCCESS}make init${COLOR_RESET}\n"
-	printf "  2. Создайте первый модуль: ${COLOR_SUCCESS}make module create${COLOR_RESET}\n"
+	printf "  2. Создайте первый модуль: ${COLOR_SUCCESS}make modules create${COLOR_RESET}\n"
 	printf "  3. Начните разработку в выбранном модуле\n"
 	printf "\n"
 fi

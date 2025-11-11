@@ -91,13 +91,13 @@ copy_stack_assets "nodejs" "$MODULE_TARGET/$MODULE_NAME" "$MODULE_TYPE"
 
 ```bash
 # Через интерактивный мастер
-make module create
+make modules create
 
 # Или напрямую
-make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-app
+make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-app
 
 # В произвольную директорию
-make module create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool MODULE_TARGET=/custom/path
+make modules create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool MODULE_TARGET=/custom/path
 ```
 
 ### Поддерживаемые стеки и типы
@@ -152,12 +152,12 @@ make module create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool MODULE_
 
 ```bash
 # Первый запуск - автоматическая сборка
-make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-app
+make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-app
 # 🔨 Сборка образа devcontainer-nodejs...
 # ✅ Образ собран успешно
 
 # Последующие запуски используют кеш
-make module create MODULE_STACK=nodejs MODULE_TYPE=npm MODULE_NAME=another-app
+make modules create MODULE_STACK=nodejs MODULE_TYPE=npm MODULE_NAME=another-app
 # (без сборки, использует существующий образ)
 ```
 
@@ -177,7 +177,7 @@ cleanup_generator_images
 Для некоторых типов модулей (Next.js, Expo, SvelteKit) используется интерактивный режим:
 
 ```bash
-make module create MODULE_STACK=nodejs MODULE_TYPE=nextjs MODULE_NAME=my-app
+make modules create MODULE_STACK=nodejs MODULE_TYPE=nextjs MODULE_NAME=my-app
 # Запустится интерактивный wizard создания Next.js приложения
 ```
 
@@ -220,11 +220,11 @@ git commit -m "Initial commit from template"
 Пример:
 ```bash
 # Внутри workspace
-make module create MODULE_NAME=app MODULE_TARGET=modules
+make modules create MODULE_NAME=app MODULE_TARGET=modules
 # -v /workspace:/workspace
 
 # Вне workspace
-make module create MODULE_NAME=app MODULE_TARGET=/tmp/test
+make modules create MODULE_NAME=app MODULE_TARGET=/tmp/test
 # -v /workspace:/workspace -v /tmp/test:/tmp/test
 ```
 
@@ -288,7 +288,7 @@ podman build -t devcontainer-nodejs -f .template/dockerfiles/nodejs.Dockerfile .
 
 # Или удалить и пересобрать автоматически
 podman rmi devcontainer-nodejs
-make module create MODULE_STACK=nodejs ...
+make modules create MODULE_STACK=nodejs ...
 ```
 
 ### Проблемы с правами доступа

@@ -12,18 +12,18 @@ MODULE_STACK ?=
 MODULE_TYPE ?=
 MODULE_NAME ?=
 
-# Получить подкоманду (первый аргумент после module)
+# Получить подкоманду (первый аргумент после modules)
 MODULE_CMD := $(word 2,$(MAKECMDGOALS))
 
-## module: Команды управления модулями (create, import, pull, push, status)
-.PHONY: module
-module:
+## modules: Команды управления модулями (create, import, pull, push, status)
+.PHONY: modules
+modules:
 	@if [ -z "$(MODULE_CMD)" ]; then \
 		$(call run-script,.template/scripts/module/help.sh); \
 	elif [ "$(MODULE_CMD)" = "create" ]; then \
-		$(MAKE) module-create MODULE_STACK="$(MODULE_STACK)" MODULE_TYPE="$(MODULE_TYPE)" MODULE_NAME="$(MODULE_NAME)" MODULE_TARGET="$(MODULE_TARGET)" || exit $$?; \
+		$(MAKE) modules-create MODULE_STACK="$(MODULE_STACK)" MODULE_TYPE="$(MODULE_TYPE)" MODULE_NAME="$(MODULE_NAME)" MODULE_TARGET="$(MODULE_TARGET)" || exit $$?; \
 	elif [ "$(MODULE_CMD)" = "import" ]; then \
-		$(MAKE) module-import MODULE_GIT_URL="$(URL)" MODULE_NAME="$(NAME)" MODULE_GIT_BRANCH="$(BRANCH)" MODULE_TARGET="$(MODULE_TARGET)" || exit $$?; \
+		$(MAKE) modules-import MODULE_GIT_URL="$(URL)" MODULE_NAME="$(NAME)" MODULE_GIT_BRANCH="$(BRANCH)" MODULE_TARGET="$(MODULE_TARGET)" || exit $$?; \
 	elif [ "$(MODULE_CMD)" = "pull" ]; then \
 		$(call run-script,.template/scripts/module/bulk.sh,pull); \
 	elif [ "$(MODULE_CMD)" = "push" ]; then \
@@ -37,8 +37,8 @@ module:
 	fi
 
 # Создание нового модуля
-.PHONY: module-create
-module-create:
+.PHONY: modules-create
+modules-create:
 	@export MODULE_STACK="$(MODULE_STACK)"; \
 	export MODULE_TYPE="$(MODULE_TYPE)"; \
 	export MODULE_NAME="$(MODULE_NAME)"; \
@@ -46,15 +46,15 @@ module-create:
 	$(call run-script,.template/scripts/module/create.sh)
 
 # Импорт модуля из git репозитория
-.PHONY: module-import
-module-import:
+.PHONY: modules-import
+modules-import:
 	@export MODULE_GIT_URL="$(MODULE_GIT_URL)"; \
 	export MODULE_NAME="$(MODULE_NAME)"; \
 	export MODULE_GIT_BRANCH="$(MODULE_GIT_BRANCH)"; \
 	export MODULE_TARGET="$(MODULE_TARGET)"; \
 	$(call run-script,.template/scripts/module/import.sh)
 
-# Stub targets для подавления ошибок Make при вызове `make module create/import/pull/push/status`
+# Stub targets для подавления ошибок Make при вызове `make modules create/import/pull/push`
 .PHONY: create import pull push
 create import pull push:
 	@:

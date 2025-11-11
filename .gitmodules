@@ -20,11 +20,11 @@
 #   git clone --recurse-submodules <workspace-url>
 #
 # Инициализировать субмодули в существующем clone:
-#   make module pull
+#   make modules pull
 #   или вручную: git submodule update --init --recursive
 #
 # Обновить все субмодули до последних версий:
-#   make module pull
+#   make modules pull
 #   или вручную: git submodule update --remote --merge
 #
 # Переключиться на рабочую ветку в субмодуле:
@@ -32,7 +32,7 @@
 #   git checkout main
 #
 # Проверить статус всех субмодулей:
-#   make module status
+#   make modules status
 #   или вручную: git submodule foreach 'git status'
 #
 # Удалить субмодуль:

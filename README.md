@@ -19,16 +19,16 @@ make init
 
 ```bash
 # Создать новый модуль (интерактивно)
-make module create
+make modules create
 # → Выбор стека (C, Zig, Node.js, PHP, Python, Rust)
 # → Выбор типа проекта (bun, npm, composer, poetry, cargo, etc.)
 # → Ввод имени модуля
 # → Автоматическая инициализация проекта
 
 # Или с параметрами (для автоматизации)
-make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
-make module create MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=my-lib
-make module create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool
+make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
+make modules create MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=my-lib
+make modules create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=my-tool
 ```
 
 **Поддерживаемые типы модулей:**
@@ -159,7 +159,7 @@ systemctl --user enable --now podman.socket
 ## 💡 Типичный workflow разработчика
 
 1. **Скачать шаблон** → клонировать репозиторий
-2. **Создать модули** → `make module create` для каждого компонента проекта
+2. **Создать модули** → `make modules create` для каждого компонента проекта
 3. **Разработка** → код, документация, автоматизация (на хосте)
 4. **Коммиты** → работа с Git как обычно
 5. **Push** → отправить в ваш репозиторий проекта
@@ -224,7 +224,7 @@ podman build -t devcontainer-nodejs -f .template/dockerfiles/nodejs.Dockerfile .
 
 # Или удалить и пересобрать автоматически
 podman rmi devcontainer-nodejs
-make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=test
+make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=test
 ```
 
 ### Проблемы с правами доступа
@@ -257,8 +257,8 @@ make template status         # Текущий статус и версия ша�
 make template test           # Тесты генераторов
 
 # Создание модулей
-make module                # Создать новый модуль (интерактивно)
-make module create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
+make modules                # Создать новый модуль (интерактивно)
+make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
 
 # Команды модулей
 make <модуль>              # Справка по модулю
@@ -273,13 +273,13 @@ make help                  # Все команды
 
 ```bash
 # Инициализация и обновление всех субмодулей
-make module pull
+make modules pull
 
 # Проверить статус всех субмодулей
-make module status
+make modules status
 
 # Отправить изменения во все субмодули
-make module push
+make modules push
 
 # Работа с отдельным субмодулем
 cd modules/my-service

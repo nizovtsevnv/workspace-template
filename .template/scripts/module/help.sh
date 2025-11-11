@@ -15,4 +15,4 @@
 
 log_info "Команды управления модулями"
 
-printf "make module create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make module import<COL>Импортировать модуль из git репозитория<ROW>make module pull<COL>Инициализация и обновление всех субмодулей<ROW>make module push<COL>Отправка изменений во все субмодули<ROW>make module status<COL>Статус всех субмодулей\n" | print_table 24
+printf "make modules create<COL>Создать новый модуль (Node.js, PHP, Python, Rust)<ROW>make modules import<COL>Импортировать модуль из git репозитория<ROW>make modules pull<COL>Обновить workspace и все субмодули<ROW>make modules push<COL>Отправить изменения субмодулей и обновить workspace<ROW>make modules status<COL>Статус всех субмодулей\n" | print_table 24

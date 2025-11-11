@@ -14,10 +14,14 @@
 
 ```bash
 # Создать новый модуль (интерактивно)
-make module
+make modules create
 
 # Или с параметрами
-make module MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
+make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
+
+# Синхронизация модулей
+make modules pull                # Обновить workspace и все субмодули
+make modules push                # Отправить изменения субмодулей и workspace
 
 # Работа с конкретным модулем (автоопределение технологий)
 make mymodule                    # Справка с найденными технологиями
@@ -36,12 +40,12 @@ make help
 
 ### Создание модулей
 
-#### `make module`
+#### `make modules create`
 Создание нового модуля проекта с интерактивным выбором стека и типа.
 
 **Интерактивное использование:**
 ```bash
-make module
+make modules create
 # → Выбор стека: Node.js, PHP, Python, Rust
 # → Выбор типа проекта
 # → Ввод имени модуля
@@ -51,24 +55,24 @@ make module
 **С параметрами (для автоматизации):**
 ```bash
 # Node.js проекты
-make module MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
-make module MODULE_STACK=nodejs MODULE_TYPE=npm MODULE_NAME=my-lib
-make module MODULE_STACK=nodejs MODULE_TYPE=nextjs MODULE_NAME=my-app
-make module MODULE_STACK=nodejs MODULE_TYPE=expo MODULE_NAME=mobile-app
-make module MODULE_STACK=nodejs MODULE_TYPE=svelte MODULE_NAME=web-ui
+make modules create MODULE_STACK=nodejs MODULE_TYPE=bun MODULE_NAME=my-service
+make modules create MODULE_STACK=nodejs MODULE_TYPE=npm MODULE_NAME=my-lib
+make modules create MODULE_STACK=nodejs MODULE_TYPE=nextjs MODULE_NAME=my-app
+make modules create MODULE_STACK=nodejs MODULE_TYPE=expo MODULE_NAME=mobile-app
+make modules create MODULE_STACK=nodejs MODULE_TYPE=svelte MODULE_NAME=web-ui
 
 # PHP проекты
-make module MODULE_STACK=php MODULE_TYPE=composer-lib MODULE_NAME=my-lib
-make module MODULE_STACK=php MODULE_TYPE=laravel MODULE_NAME=api
+make modules create MODULE_STACK=php MODULE_TYPE=composer-lib MODULE_NAME=my-lib
+make modules create MODULE_STACK=php MODULE_TYPE=laravel MODULE_NAME=api
 
 # Python проекты
-make module MODULE_STACK=python MODULE_TYPE=uv MODULE_NAME=data-processor
-make module MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=ml-model
+make modules create MODULE_STACK=python MODULE_TYPE=uv MODULE_NAME=data-processor
+make modules create MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=ml-model
 
 # Rust проекты
-make module MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=cli-tool
-make module MODULE_STACK=rust MODULE_TYPE=lib MODULE_NAME=shared-lib
-make module MODULE_STACK=rust MODULE_TYPE=dioxus MODULE_NAME=web-ui
+make modules create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=cli-tool
+make modules create MODULE_STACK=rust MODULE_TYPE=lib MODULE_NAME=shared-lib
+make modules create MODULE_STACK=rust MODULE_TYPE=dioxus MODULE_NAME=web-ui
 ```
 
 **Поддерживаемые типы модулей:**
@@ -105,17 +109,75 @@ make module MODULE_STACK=rust MODULE_TYPE=dioxus MODULE_NAME=web-ui
 **Примеры:**
 ```bash
 # Создать Next.js приложение
-make module MODULE_STACK=nodejs MODULE_TYPE=nextjs MODULE_NAME=frontend
+make modules create MODULE_STACK=nodejs MODULE_TYPE=nextjs MODULE_NAME=frontend
 
 # Создать Laravel API
-make module MODULE_STACK=php MODULE_TYPE=laravel MODULE_NAME=api
+make modules create MODULE_STACK=php MODULE_TYPE=laravel MODULE_NAME=api
 
 # Создать Python библиотеку с Poetry
-make module MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=data-lib
+make modules create MODULE_STACK=python MODULE_TYPE=poetry MODULE_NAME=data-lib
 
 # Создать Rust CLI инструмент
-make module MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=deploy-tool
+make modules create MODULE_STACK=rust MODULE_TYPE=bin MODULE_NAME=deploy-tool
 ```
+
+### Синхронизация модулей
+
+#### `make modules pull`
+Обновление workspace репозитория и всех субмодулей.
+
+**Процесс:**
+1. Проверка несохраненных изменений в workspace (блокирует если есть)
+2. Обновление workspace: `git fetch` + `git pull --rebase`
+3. Синхронизация всех субмодулей:
+   - Инициализация неинициализированных (`git submodule update --init`)
+   - Обновление существующих (smart pull с учетом веток)
+
+**Пример:**
+```bash
+make modules pull
+# ▶ Синхронизация workspace и субмодулей
+# ℹ Проверка обновлений workspace...
+# ✓ Workspace обновлен
+#
+# ▶ Синхронизация субмодулей
+# ℹ Обновление supabase...
+# ✓ supabase обновлен
+# ℹ Обновление api...
+# ✓ api обновлен
+```
+
+#### `make modules push`
+Отправка изменений субмодулей и обновление workspace.
+
+**Процесс:**
+1. Отправка изменений всех субмодулей с uncommitted changes
+2. Проверка изменений ссылок на субмодули в workspace
+3. Автоматический коммит: `chore: update submodule references`
+4. Отправка workspace в origin
+
+**Пример:**
+```bash
+make modules push
+# ▶ Отправка изменений субмодулей и workspace
+#
+# ▶ Отправка изменений субмодулей
+# ℹ Отправка supabase...
+# ✓ supabase отправлен
+# ℹ api: нет изменений
+#
+# ▶ Синхронизация workspace
+# ℹ Обнаружены изменения ссылок на субмодули
+# ℹ Коммит изменений workspace...
+# ✓ Изменения закоммичены
+# ℹ Отправка workspace в origin...
+# ✓ Workspace отправлен
+```
+
+**Примечание:** Если в субмодулях есть ошибки при push, workspace не будет обновлен.
+
+#### `make modules status`
+Отображение статуса всех субмодулей (инициализированы ли, текущая ветка, коммит).
 
 ## Команды модулей
 

@@ -24,6 +24,43 @@ CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-podman}"
 readonly CONTAINER_RUNTIME
 
 # ===================================
+# Функция сборки образа стека
+# ===================================
+# Проверяет наличие образа и собирает если нужно
+# Параметры: $1 - имя стека (nodejs, python, rust, c, zig, php)
+# Возвращает: 0 если успешно, 1 если ошибка
+_ensure_stack_image() {
+	stack="$1"
+	image_name="workspace-stack-$stack"
+	dockerfile_path=".template/dockerfiles/$stack.Dockerfile"
+
+	# Получить workspace root
+	workspace_root=$(get_workspace_root) || return 1
+
+	# Проверка наличия Dockerfile
+	if [ ! -f "$workspace_root/$dockerfile_path" ]; then
+		echo "❌ Ошибка: не найден $dockerfile_path" >&2
+		return 1
+	fi
+
+	# Проверка и сборка образа если нужно
+	if ! $CONTAINER_RUNTIME images -q "$image_name" 2>/dev/null | grep -q .; then
+		echo "🔨 Сборка образа $image_name..." >&2
+		dockerfile_dir=$(dirname "$workspace_root/$dockerfile_path")
+		if ! $CONTAINER_RUNTIME build \
+			-t "$image_name" \
+			-f "$workspace_root/$dockerfile_path" \
+			"$dockerfile_dir" >/dev/null 2>&1; then
+			echo "❌ Ошибка сборки образа $image_name" >&2
+			return 1
+		fi
+		echo "✅ Образ $image_name собран успешно" >&2
+	fi
+
+	return 0
+}
+
+# ===================================
 # Универсальная функция выполнения
 # ===================================
 # Проверяет наличие инструмента на хосте, иначе запускает в контейнере
@@ -53,6 +90,9 @@ _run_stack_generic() {
 	workspace_root=$(get_workspace_root)
 	workdir_abs=$(cd "$workdir" 2>/dev/null && pwd || echo "$workdir")
 
+	# Убедиться что образ существует (автосборка)
+	_ensure_stack_image "$stack_name" || return 1
+
 	# Определяем нужны ли дополнительные монтирования
 	extra_mounts=""
 	case "$workdir_abs" in
@@ -63,6 +103,7 @@ _run_stack_generic() {
 			;;
 	esac
 
+	# shellcheck disable=SC2086
 	$CONTAINER_RUNTIME run --rm \
 		-v "$workspace_root:/workspace" \
 		$extra_mounts \

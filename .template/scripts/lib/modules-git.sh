@@ -502,6 +502,19 @@ has_uncommitted_changes() {
 	return 1
 }
 
+# Подсчитать количество измененных файлов
+# Параметр: $1 - путь к модулю
+# Возвращает: число измененных файлов (staged, unstaged, untracked)
+count_uncommitted_files() {
+	local module_path="$1"
+	cd "$module_path" || return 0
+
+	# git status --porcelain: одна строка = один файл
+	count=$(git status --porcelain 2>/dev/null | wc -l)
+	cd "$WORKSPACE_ROOT" || true
+	echo "$count"
+}
+
 # Подсчитать количество коммитов ahead (непушнутых)
 # Параметр: $1 - путь к модулю (абсолютный или относительный)
 # Возвращает: количество коммитов или 0

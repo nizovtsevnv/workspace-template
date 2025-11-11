@@ -415,37 +415,29 @@ case "$BULK_CMD" in
 				changes="-"
 			fi
 
-			# Форматируем статус с цветами
+			# Выводим строку таблицы с цветами
 			case "$sync_status" in
 				synced)
-					status_text="${COLOR_SUCCESS}✓ synced${COLOR_RESET}"
-					sync_text="-"
+					printf "%-16s %-10s ${COLOR_SUCCESS}%-15s${COLOR_RESET} %-8s %s\n" \
+						"$module_name" "$branch" "✓ synced" "$changes" "-"
 					;;
 				ahead)
-					status_text="${COLOR_WARNING}⚠ ahead${COLOR_RESET}"
-					sync_text="${ahead}↑"
+					printf "%-16s %-10s ${COLOR_WARNING}%-15s${COLOR_RESET} %-8s %s\n" \
+						"$module_name" "$branch" "⚠ ahead" "$changes" "${ahead}↑"
 					;;
 				behind)
-					status_text="${COLOR_WARNING}⚠ behind${COLOR_RESET}"
-					sync_text="${behind}↓"
+					printf "%-16s %-10s ${COLOR_WARNING}%-15s${COLOR_RESET} %-8s %s\n" \
+						"$module_name" "$branch" "⚠ behind" "$changes" "${behind}↓"
 					;;
 				diverged)
-					status_text="${COLOR_ERROR}⚠ diverged${COLOR_RESET}"
-					sync_text="${ahead}↑${behind}↓"
+					printf "%-16s %-10s ${COLOR_ERROR}%-15s${COLOR_RESET} %-8s %s\n" \
+						"$module_name" "$branch" "⚠ diverged" "$changes" "${ahead}↑${behind}↓"
 					;;
 				no-remote)
-					status_text="${COLOR_DIM}- no remote${COLOR_RESET}"
-					sync_text="-"
+					printf "%-16s %-10s ${COLOR_DIM}%-15s${COLOR_RESET} %-8s %s\n" \
+						"$module_name" "$branch" "- no remote" "$changes" "-"
 					;;
 			esac
-
-			# Выводим строку таблицы
-			printf "%-16s %-10s %-24s %-8s %s\n" \
-				"$module_name" \
-				"$branch" \
-				"$status_text" \
-				"$changes" \
-				"$sync_text"
 		done
 
 		printf "\n"

@@ -156,6 +156,45 @@ run_zig() {
 }
 
 # ===================================
+# Функция проверки версий инструментов
+# ===================================
+# Показывает информацию о доступных версиях инструментов (хост и контейнер)
+# Параметры: нет
+# Использование: check_stack_versions
+check_stack_versions() {
+	printf "\n${COLOR_SECTION}▶ Версии инструментов технологических стеков${COLOR_RESET}\n\n"
+
+	# Определяем стеки для проверки
+	stacks="nodejs:node php:php python:python3 rust:cargo c:gcc zig:zig"
+
+	for stack_info in $stacks; do
+		stack="${stack_info%%:*}"
+		command="${stack_info##*:}"
+
+		printf "${COLOR_DIM}%-12s${COLOR_RESET} " "$stack"
+
+		# Проверяем хост
+		if command -v "$command" >/dev/null 2>&1; then
+			version=$("$command" --version 2>&1 | head -n1 | cut -c1-60)
+			printf "${COLOR_SUCCESS}✓ хост:${COLOR_RESET} %s\n" "$version"
+		else
+			printf "${COLOR_WARNING}- хост: не установлен${COLOR_RESET}\n"
+		fi
+
+		# Проверяем контейнер
+		image_name="workspace-stack-$stack"
+		printf "%-12s " ""
+		if $CONTAINER_RUNTIME images -q "$image_name" 2>/dev/null | grep -q .; then
+			printf "${COLOR_SUCCESS}✓ контейнер: $image_name${COLOR_RESET}\n"
+		else
+			printf "${COLOR_DIM}- контейнер: образ не собран${COLOR_RESET}\n"
+		fi
+	done
+
+	printf "\n"
+}
+
+# ===================================
 # Универсальная функция-маршрутизатор
 # ===================================
 # Автоопределение стека по технологии модуля

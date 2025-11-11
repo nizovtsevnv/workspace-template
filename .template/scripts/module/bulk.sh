@@ -348,19 +348,19 @@ case "$BULK_CMD" in
 
 		case "$workspace_sync" in
 			synced)
-				printf "  Status: %s✓ synced with origin/%s%s\n" "$COLOR_SUCCESS" "$current_branch" "$COLOR_RESET"
+				printf "  Status: ${COLOR_SUCCESS}✓ synced with origin/%s${COLOR_RESET}\n" "$current_branch"
 				;;
 			ahead)
-				printf "  Status: %s⚠ ahead%s (%s коммитов не отправлено)\n" "$COLOR_WARNING" "$COLOR_RESET" "$workspace_ahead"
+				printf "  Status: ${COLOR_WARNING}⚠ ahead${COLOR_RESET} (%s коммитов не отправлено)\n" "$workspace_ahead"
 				;;
 			behind)
-				printf "  Status: %s⚠ behind%s (%s коммитов не получено)\n" "$COLOR_WARNING" "$COLOR_RESET" "$workspace_behind"
+				printf "  Status: ${COLOR_WARNING}⚠ behind${COLOR_RESET} (%s коммитов не получено)\n" "$workspace_behind"
 				;;
 			diverged)
-				printf "  Status: %s⚠ diverged%s (%s↑ %s↓)\n" "$COLOR_ERROR" "$COLOR_RESET" "$workspace_ahead" "$workspace_behind"
+				printf "  Status: ${COLOR_ERROR}⚠ diverged${COLOR_RESET} (%s↑ %s↓)\n" "$workspace_ahead" "$workspace_behind"
 				;;
 			no-remote)
-				printf "  Status: %s- no remote tracking%s\n" "$COLOR_DIM" "$COLOR_RESET"
+				printf "  Status: ${COLOR_DIM}- no remote tracking${COLOR_RESET}\n"
 				;;
 		esac
 
@@ -379,8 +379,8 @@ case "$BULK_CMD" in
 		printf "\n"
 
 		# Заголовок таблицы
-		printf "%s%-16s %-10s %-15s %-8s %s%s\n" \
-			"$COLOR_DIM" "MODULE" "BRANCH" "STATUS" "CHANGES" "SYNC" "$COLOR_RESET"
+		printf "${COLOR_DIM}%-16s %-10s %-15s %-8s %s${COLOR_RESET}\n" \
+			"MODULE" "BRANCH" "STATUS" "CHANGES" "SYNC"
 
 		# Формируем данные для каждого субмодуля
 		for module_path in $submodules; do
@@ -389,12 +389,10 @@ case "$BULK_CMD" in
 			if ! is_submodule_initialized "$module_path"; then
 				# Не инициализирован
 				branch=$(get_submodule_branch "$module_path")
-				printf "%-16s %-10s %s%-15s%s %-8s %s\n" \
+				printf "%-16s %-10s ${COLOR_ERROR}%-15s${COLOR_RESET} %-8s %s\n" \
 					"$module_name" \
 					"$branch" \
-					"$COLOR_ERROR" \
 					"✗ not init" \
-					"$COLOR_RESET" \
 					"-" \
 					"-"
 				continue
@@ -452,10 +450,10 @@ case "$BULK_CMD" in
 
 		printf "\n"
 		log_info "Легенда:"
-		printf "  %s✓ synced%s     - синхронизирован с remote\n" "$COLOR_SUCCESS" "$COLOR_RESET"
-		printf "  %s⚠ ahead%s      - есть непушнутые коммиты\n" "$COLOR_WARNING" "$COLOR_RESET"
-		printf "  %s⚠ behind%s     - есть необпулленные коммиты\n" "$COLOR_WARNING" "$COLOR_RESET"
-		printf "  %s⚠ diverged%s   - есть изменения в обоих направлениях\n" "$COLOR_ERROR" "$COLOR_RESET"
+		printf "  ${COLOR_SUCCESS}✓ synced${COLOR_RESET}     - синхронизирован с remote\n"
+		printf "  ${COLOR_WARNING}⚠ ahead${COLOR_RESET}      - есть непушнутые коммиты\n"
+		printf "  ${COLOR_WARNING}⚠ behind${COLOR_RESET}     - есть необпулленные коммиты\n"
+		printf "  ${COLOR_ERROR}⚠ diverged${COLOR_RESET}   - есть изменения в обоих направлениях\n"
 		printf "  yes/-        - наличие uncommitted changes\n"
 		printf "  N↑           - N коммитов ahead (непушнуто)\n"
 		printf "  N↓           - N коммитов behind (необпуллено)\n"

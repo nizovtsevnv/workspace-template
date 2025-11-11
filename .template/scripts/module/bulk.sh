@@ -390,8 +390,20 @@ case "$BULK_CMD" in
 		log_section "Статус модулей"
 		printf "\n"
 
+		# Определяем максимальную длину имени модуля для правильного выравнивания
+		max_module_len=16
+		for module_path in $submodules; do
+			module_name=$(basename "$module_path")
+			module_len=${#module_name}
+			if [ "$module_len" -gt "$max_module_len" ]; then
+				max_module_len=$module_len
+			fi
+		done
+		# Добавляем запас для удобства чтения
+		max_module_len=$((max_module_len + 2))
+
 		# Заголовок таблицы
-		printf "${COLOR_DIM}%-16s %-12s %-16s %-10s %s${COLOR_RESET}\n" \
+		printf "${COLOR_DIM}%-${max_module_len}s %-12s %-16s %-10s %s${COLOR_RESET}\n" \
 			"Модуль" "Ветка" "Вне коммитов" "Коммиты" "Статус"
 
 		# Формируем данные для каждого субмодуля
@@ -401,7 +413,7 @@ case "$BULK_CMD" in
 			if ! is_submodule_initialized "$module_path"; then
 				# Не инициализирован
 				branch=$(get_submodule_branch "$module_path")
-				printf "%-16s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
+				printf "%-${max_module_len}s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
 					"$module_name" \
 					"$branch" \
 					"-" \
@@ -433,7 +445,7 @@ case "$BULK_CMD" in
 
 			if [ -n "$expected_commit" ] && [ -n "$actual_commit" ] && [ "$expected_commit" != "$actual_commit" ]; then
 				# Субмодуль не синхронизирован с workspace
-				printf "%-16s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+				printf "%-${max_module_len}s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 					"$module_name" "$branch" "$changes" "workspace" "требуется git add и commit"
 				continue
 			fi
@@ -442,23 +454,23 @@ case "$BULK_CMD" in
 			# Формат: MODULE BRANCH SYNC STATUS CHANGES
 			case "$sync_status" in
 				synced)
-					printf "%-16s %-12s %-16s %-10s ${COLOR_SUCCESS}%s${COLOR_RESET}\n" \
+					printf "%-${max_module_len}s %-12s %-16s %-10s ${COLOR_SUCCESS}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "-" "синхронизировано"
 					;;
 				ahead)
-					printf "%-16s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+					printf "%-${max_module_len}s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${ahead}↑" "make modules push"
 					;;
 				behind)
-					printf "%-16s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+					printf "%-${max_module_len}s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${behind}↓" "make modules pull"
 					;;
 				diverged)
-					printf "%-16s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
+					printf "%-${max_module_len}s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${ahead}↑${behind}↓" "make modules sync"
 					;;
 				no-remote)
-					printf "%-16s %-12s %-16s %-10s ${COLOR_DIM}%s${COLOR_RESET}\n" \
+					printf "%-${max_module_len}s %-12s %-16s %-10s ${COLOR_DIM}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "-" "не отслеживается"
 					;;
 			esac

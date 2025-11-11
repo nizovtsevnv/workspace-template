@@ -107,15 +107,17 @@ _run_stack_generic() {
 			;;
 	esac
 
+	# Выполняем команду в контейнере
+	# Используем eval для правильной интерпретации кавычек и экранирования
 	# shellcheck disable=SC2086
-	$CONTAINER_RUNTIME run --rm \
-		-v "$workspace_root:/workspace" \
+	eval "$CONTAINER_RUNTIME run --rm \
+		-v \"$workspace_root:/workspace\" \
 		$extra_mounts \
-		-w "$workdir_abs" \
-		-e "HOST_UID=$(id -u)" \
-		-e "HOST_GID=$(id -g)" \
-		"$container_image" \
-		/bin/sh -c "$cmd"
+		-w \"$workdir_abs\" \
+		-e \"HOST_UID=\$(id -u)\" \
+		-e \"HOST_GID=\$(id -g)\" \
+		\"$container_image\" \
+		sh -c '$cmd'"
 }
 
 # ===================================

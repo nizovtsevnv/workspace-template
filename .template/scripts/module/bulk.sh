@@ -286,33 +286,41 @@ case "$BULK_CMD" in
 		log_section "Синхронизация workspace"
 		printf "\n"
 
-		# Проверяем, изменились ли ссылки на субмодули
+		# Проверяем, есть ли uncommitted changes
 		workspace_status=$(git status --porcelain 2>/dev/null)
+		has_changes=false
 
-		if [ -z "$workspace_status" ]; then
-			log_success "Workspace актуален, изменений нет"
-			exit 0
+		if [ -n "$workspace_status" ]; then
+			has_changes=true
+			# Есть изменения - коммитим
+			log_info "Обнаружены изменения ссылок на субмодули"
+			log_info "Коммит изменений workspace..."
+
+			if git add . && git commit -m "chore: update submodule references" 2>&1; then
+				log_success "Изменения закоммичены"
+			else
+				log_error "Не удалось создать коммит"
+				exit 1
+			fi
 		fi
 
-		# Есть изменения - коммитим и отправляем
-		log_info "Обнаружены изменения ссылок на субмодули"
-		log_info "Коммит изменений workspace..."
+		# Проверяем, есть ли unpushed commits
+		ahead=$(count_commits_ahead "$WORKSPACE_ROOT")
 
-		if git add . && git commit -m "chore: update submodule references" 2>&1; then
-			log_success "Изменения закоммичены"
+		if [ "$ahead" -gt 0 ]; then
+			log_info "Отправка workspace в origin ($ahead коммитов)..."
+
+			if git push origin "$(git branch --show-current)" 2>&1; then
+				log_success "Workspace отправлен ($ahead коммитов)"
+			else
+				log_error "Не удалось отправить workspace"
+				log_info "Попробуйте вручную: git push"
+				exit 1
+			fi
 		else
-			log_error "Не удалось создать коммит"
-			exit 1
-		fi
-
-		log_info "Отправка workspace в origin..."
-
-		if git push origin "$(git branch --show-current)" 2>&1; then
-			log_success "Workspace отправлен"
-		else
-			log_error "Не удалось отправить workspace"
-			log_info "Попробуйте вручную: git push"
-			exit 1
+			if [ "$has_changes" = false ]; then
+				log_success "Workspace актуален, изменений нет"
+			fi
 		fi
 
 		printf "\n"

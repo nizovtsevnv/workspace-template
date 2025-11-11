@@ -95,22 +95,28 @@ _run_stack_generic() {
 	# Убедиться что образ существует (автосборка)
 	_ensure_stack_image "$stack_name" || return 1
 
-	# Определяем нужны ли дополнительные монтирования
+	# Определяем путь внутри контейнера и дополнительные монтирования
+	container_workdir=""
 	extra_mounts=""
 	case "$workdir_abs" in
-		"$workspace_root"*) ;;  # Внутри workspace
+		"$workspace_root"*)
+			# Внутри workspace - преобразуем в путь контейнера
+			container_workdir="/workspace${workdir_abs#$workspace_root}"
+			;;
 		*)
-			# Вне workspace - монтируем отдельно
+			# Вне workspace - монтируем отдельно и используем host путь
 			extra_mounts="-v $workdir_abs:$workdir_abs"
+			container_workdir="$workdir_abs"
 			;;
 	esac
 
 	# Выполняем команду в контейнере
 	# shellcheck disable=SC2086,SC2046
 	$CONTAINER_RUNTIME run --rm \
+		--user "$(id -u):$(id -g)" \
 		-v "$workspace_root:/workspace" \
 		$extra_mounts \
-		-w "$workdir_abs" \
+		-w "$container_workdir" \
 		-e "HOST_UID=$(id -u)" \
 		-e "HOST_GID=$(id -g)" \
 		"$container_image" \

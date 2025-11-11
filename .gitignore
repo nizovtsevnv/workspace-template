@@ -104,6 +104,9 @@ doc/generated/*
 # Note: субмодули управляют своими зависимостями
 # Здесь только workspace-уровень если будет
 
+# pnpm global store (если используется в workspace)
+.pnpm-store/
+
 # ===================================
 # AI & Tools
 # ===================================
@@ -141,8 +144,26 @@ htmlcov/
 # Modules (template development)
 # ===================================
 # В режиме разработки шаблона игнорируем подкаталоги modules
-# При инициализации проекта (make init) эта секция удаляется
+# При инициализации проекта (make init) эта секция удаляется и заменяется
+# на правила для временных файлов технологий
 modules/*/
+
+# Временно: правила для разработки шаблона (не дублируются после init)
+# Node.js
+modules/*/node_modules/
+modules/*/.next/
+modules/*/.nuxt/
+modules/*/.output/
+
+# Python
+modules/*/__pycache__/
+modules/*/.venv/
+
+# PHP
+modules/*/vendor/
+
+# Rust
+modules/*/target/
 
 # ===================================
 # Misc

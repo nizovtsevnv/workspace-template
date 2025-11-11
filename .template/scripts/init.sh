@@ -103,8 +103,43 @@ fi
 
 # 1.6. Обновление .gitignore
 if grep -q "^modules/\*/" .gitignore 2>/dev/null; then
+	# Удаляем секцию "Modules (template development)"
 	sed -i '/^# Modules (template development)/,/^modules\/\*\//d' .gitignore
-	log_success "Правило modules/*/ удалено из .gitignore"
+
+	# Добавляем правила для временных файлов модулей
+	cat >> .gitignore <<'EOF'
+# ===================================
+# Modules - Technology Specific
+# ===================================
+# Node.js
+modules/*/node_modules/
+modules/*/.next/
+modules/*/.nuxt/
+modules/*/.output/
+modules/*/dist/
+modules/*/build/
+
+# Python
+modules/*/__pycache__/
+modules/*/*.py[cod]
+modules/*/.pytest_cache/
+modules/*/.venv/
+modules/*/venv/
+modules/*/.tox/
+
+# PHP
+modules/*/vendor/
+modules/*/composer.lock
+
+# Rust
+modules/*/target/
+modules/*/Cargo.lock
+
+# General
+modules/*/.DS_Store
+modules/*/node_modules
+EOF
+	log_success "Правило modules/*/ удалено и заменено на правила временных файлов"
 fi
 
 if grep -q "^\.template-version$" .gitignore 2>/dev/null; then

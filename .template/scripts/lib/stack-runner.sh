@@ -119,6 +119,10 @@ _run_stack_generic() {
 		-w "$container_workdir" \
 		-e "HOST_UID=$(id -u)" \
 		-e "HOST_GID=$(id -g)" \
+		-e "HOME=/tmp" \
+		-e "npm_config_cache=/tmp/.npm" \
+		-e "YARN_CACHE_FOLDER=/tmp/.yarn-cache" \
+		-e "BUN_INSTALL_CACHE_DIR=/tmp/.bun-cache" \
 		"$container_image" \
 		sh -c "$cmd"
 }

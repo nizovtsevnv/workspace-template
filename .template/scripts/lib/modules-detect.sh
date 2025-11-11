@@ -100,3 +100,33 @@ detect_php_manager() {
 detect_rust_manager() {
 	echo "cargo"
 }
+
+# ===================================
+# Функции получения имен lock-файлов
+# ===================================
+
+# Получить имя lock-файла для Node.js пакетного менеджера
+# Параметр: $1 - имя пакетного менеджера (bun, pnpm, yarn, npm)
+# Возвращает: имя lock-файла
+get_nodejs_lock_name() {
+	case "$1" in
+		bun) echo "bun.lock" ;;
+		pnpm) echo "pnpm-lock.yaml" ;;
+		yarn) echo "yarn.lock" ;;
+		npm) echo "package-lock.json" ;;
+		*) echo "lock file" ;;
+	esac
+}
+
+# Получить имя lock-файла для Python пакетного менеджера
+# Параметр: $1 - имя пакетного менеджера (uv, poetry, pipenv, pip)
+# Возвращает: имя lock-файла
+get_python_lock_name() {
+	case "$1" in
+		uv) echo "uv.lock" ;;
+		poetry) echo "poetry.lock" ;;
+		pipenv) echo "Pipfile.lock" ;;
+		pip) echo "requirements.txt" ;;
+		*) echo "lock file" ;;
+	esac
+}

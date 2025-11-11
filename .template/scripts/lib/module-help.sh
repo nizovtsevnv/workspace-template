@@ -11,7 +11,7 @@
 . "${SCRIPT_DIR:?SCRIPT_DIR не определён}/lib/loader.sh"
 load_lib "ui" "log_info"
 load_lib "modules" "detect_module_tech"
-load_lib "modules-detect" "detect_module_stack"
+load_lib "modules-detect" "detect_module_stack detect_nodejs_manager detect_python_manager get_nodejs_lock_name get_python_lock_name"
 load_lib "modules-git" "is_git_submodule"
 
 # Показать справку по модулю
@@ -72,15 +72,41 @@ show_module_help() {
 	printf "\n"
 
 	# Git команды / Обслуживание модуля (в зависимости от типа)
+	log_info "Обслуживание модуля:"
+
 	if is_git_submodule "$MODULE_PATH"; then
-		log_info "Обслуживание модуля:"
 		printf "make %s pull<COL>Синхронизация с удаленным репозиторием\n" "$MODULE_NAME" | print_table 40
 		printf "make %s push<COL>Отправка изменений\n" "$MODULE_NAME" | print_table 40
 		printf "make %s convert<COL>Конвертировать в локальный модуль\n" "$MODULE_NAME" | print_table 40
 	else
-		log_info "Обслуживание модуля:"
 		printf "make %s convert<COL>Конвертировать в git submodule\n" "$MODULE_NAME" | print_table 40
 	fi
+
+	# Команды установки зависимостей (определяем по lock-файлам)
+	for tech in $MODULE_TECH; do
+		case "$tech" in
+			nodejs)
+				pm=$(detect_nodejs_manager "$MODULE_PATH")
+				lock_file=$(get_nodejs_lock_name "$pm")
+				printf "make %s %s install<COL>Установить зависимости (по версии %s)\n" \
+					"$MODULE_NAME" "$pm" "$lock_file" | print_table 40
+				;;
+			python)
+				pm=$(detect_python_manager "$MODULE_PATH")
+				lock_file=$(get_python_lock_name "$pm")
+				printf "make %s %s install<COL>Установить зависимости (по версии %s)\n" \
+					"$MODULE_NAME" "$pm" "$lock_file" | print_table 40
+				;;
+			php)
+				printf "make %s composer install<COL>Установить зависимости (по версии composer.lock)\n" \
+					"$MODULE_NAME" | print_table 40
+				;;
+			rust)
+				printf "make %s cargo build<COL>Собрать проект (установит зависимости)\n" \
+					"$MODULE_NAME" | print_table 40
+				;;
+		esac
+	done
 
 	# Показать секции команд в зависимости от стека
 	# Система приоритетов: Makefile > PM > Scripts > Bin commands

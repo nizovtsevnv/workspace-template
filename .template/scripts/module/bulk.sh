@@ -391,7 +391,7 @@ case "$BULK_CMD" in
 		printf "\n"
 
 		# Заголовок таблицы
-		printf "${COLOR_DIM}%-12s %-12s %-16s %-10s %s${COLOR_RESET}\n" \
+		printf "${COLOR_DIM}%-16s %-12s %-16s %-10s %s${COLOR_RESET}\n" \
 			"Модуль" "Ветка" "Вне коммитов" "Коммиты" "Статус"
 
 		# Формируем данные для каждого субмодуля
@@ -401,7 +401,7 @@ case "$BULK_CMD" in
 			if ! is_submodule_initialized "$module_path"; then
 				# Не инициализирован
 				branch=$(get_submodule_branch "$module_path")
-				printf "%-12s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
+				printf "%-16s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
 					"$module_name" \
 					"$branch" \
 					"-" \
@@ -433,7 +433,7 @@ case "$BULK_CMD" in
 
 			if [ -n "$expected_commit" ] && [ -n "$actual_commit" ] && [ "$expected_commit" != "$actual_commit" ]; then
 				# Субмодуль не синхронизирован с workspace
-				printf "%-12s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+				printf "%-16s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 					"$module_name" "$branch" "$changes" "workspace" "требуется git add и commit"
 				continue
 			fi
@@ -442,23 +442,23 @@ case "$BULK_CMD" in
 			# Формат: MODULE BRANCH SYNC STATUS CHANGES
 			case "$sync_status" in
 				synced)
-					printf "%-12s %-12s %-16s %-10s ${COLOR_SUCCESS}%s${COLOR_RESET}\n" \
+					printf "%-16s %-12s %-16s %-10s ${COLOR_SUCCESS}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "-" "синхронизировано"
 					;;
 				ahead)
-					printf "%-12s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+					printf "%-16s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${ahead}↑" "make modules push"
 					;;
 				behind)
-					printf "%-12s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
+					printf "%-16s %-12s %-16s %-10s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${behind}↓" "make modules pull"
 					;;
 				diverged)
-					printf "%-12s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
+					printf "%-16s %-12s %-16s %-10s ${COLOR_ERROR}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "${ahead}↑${behind}↓" "make modules sync"
 					;;
 				no-remote)
-					printf "%-12s %-12s %-16s %-10s ${COLOR_DIM}%s${COLOR_RESET}\n" \
+					printf "%-16s %-12s %-16s %-10s ${COLOR_DIM}%s${COLOR_RESET}\n" \
 						"$module_name" "$branch" "$changes" "-" "не отслеживается"
 					;;
 			esac

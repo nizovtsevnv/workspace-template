@@ -320,7 +320,51 @@ case "$BULK_CMD" in
 		;;
 
 	status)
-		log_section "Статус субмодулей"
+		# Проверяем workspace status
+		log_section "Workspace status"
+		printf "\n"
+
+		# Получаем текущую ветку
+		current_branch=$(git branch --show-current 2>/dev/null || echo "detached")
+
+		# Fetch для получения актуальной информации о remote (тихо)
+		log_info "Получение информации о remote..."
+		git fetch --quiet 2>/dev/null || true
+
+		# Проверяем статус синхронизации workspace
+		workspace_sync=$(get_sync_status "$WORKSPACE_ROOT")
+		workspace_has_changes=""
+		if has_uncommitted_changes "$WORKSPACE_ROOT"; then
+			workspace_has_changes="yes"
+		else
+			workspace_has_changes="no"
+		fi
+
+		workspace_ahead=$(count_commits_ahead "$WORKSPACE_ROOT")
+		workspace_behind=$(count_commits_behind "$WORKSPACE_ROOT")
+
+		# Форматируем вывод workspace status
+		printf "  Branch: %s\n" "$current_branch"
+
+		case "$workspace_sync" in
+			synced)
+				printf "  Status: %s✓ synced with origin/%s%s\n" "$COLOR_SUCCESS" "$current_branch" "$COLOR_RESET"
+				;;
+			ahead)
+				printf "  Status: %s⚠ ahead%s (%s коммитов не отправлено)\n" "$COLOR_WARNING" "$COLOR_RESET" "$workspace_ahead"
+				;;
+			behind)
+				printf "  Status: %s⚠ behind%s (%s коммитов не получено)\n" "$COLOR_WARNING" "$COLOR_RESET" "$workspace_behind"
+				;;
+			diverged)
+				printf "  Status: %s⚠ diverged%s (%s↑ %s↓)\n" "$COLOR_ERROR" "$COLOR_RESET" "$workspace_ahead" "$workspace_behind"
+				;;
+			no-remote)
+				printf "  Status: %s- no remote tracking%s\n" "$COLOR_DIM" "$COLOR_RESET"
+				;;
+		esac
+
+		printf "  Local changes: %s\n" "$workspace_has_changes"
 		printf "\n"
 
 		# Получаем список всех субмодулей
@@ -331,38 +375,93 @@ case "$BULK_CMD" in
 			exit 0
 		fi
 
-		# Формируем таблицу
-		table_data=""
+		log_section "Статус субмодулей"
+		printf "\n"
 
+		# Заголовок таблицы
+		printf "%s%-16s %-10s %-15s %-8s %s%s\n" \
+			"$COLOR_DIM" "MODULE" "BRANCH" "STATUS" "CHANGES" "SYNC" "$COLOR_RESET"
+
+		# Формируем данные для каждого субмодуля
 		for module_path in $submodules; do
 			module_name=$(basename "$module_path")
 
-			if is_submodule_initialized "$module_path"; then
-				status="${COLOR_SUCCESS}✓ initialized${COLOR_RESET}"
-				commit=$(get_submodule_commit "$module_path")
+			if ! is_submodule_initialized "$module_path"; then
+				# Не инициализирован
 				branch=$(get_submodule_branch "$module_path")
-			else
-				status="${COLOR_ERROR}✗ not initialized${COLOR_RESET}"
-				commit="-"
-				branch=$(get_submodule_branch "$module_path")
+				printf "%-16s %-10s %s%-15s%s %-8s %s\n" \
+					"$module_name" \
+					"$branch" \
+					"$COLOR_ERROR" \
+					"✗ not init" \
+					"$COLOR_RESET" \
+					"-" \
+					"-"
+				continue
 			fi
 
-			# Объединяем колонки в одну строку для value
-			value="${status}  ${branch}  ${commit}"
+			# Инициализирован - получаем детальную информацию
+			branch=$(get_submodule_branch "$module_path")
+			module_path_abs="$WORKSPACE_ROOT/$module_path"
 
-			if [ -z "$table_data" ]; then
-				table_data="${module_name}<COL>${value}"
+			# Fetch для субмодуля (тихо)
+			(cd "$module_path_abs" && git fetch --quiet 2>/dev/null) || true
+
+			sync_status=$(get_sync_status "$module_path_abs")
+			ahead=$(count_commits_ahead "$module_path_abs")
+			behind=$(count_commits_behind "$module_path_abs")
+
+			if has_uncommitted_changes "$module_path_abs"; then
+				changes="yes"
 			else
-				table_data="${table_data}<ROW>${module_name}<COL>${value}"
+				changes="-"
 			fi
+
+			# Форматируем статус с цветами
+			case "$sync_status" in
+				synced)
+					status_text="${COLOR_SUCCESS}✓ synced${COLOR_RESET}"
+					sync_text="-"
+					;;
+				ahead)
+					status_text="${COLOR_WARNING}⚠ ahead${COLOR_RESET}"
+					sync_text="${ahead}↑"
+					;;
+				behind)
+					status_text="${COLOR_WARNING}⚠ behind${COLOR_RESET}"
+					sync_text="${behind}↓"
+					;;
+				diverged)
+					status_text="${COLOR_ERROR}⚠ diverged${COLOR_RESET}"
+					sync_text="${ahead}↑${behind}↓"
+					;;
+				no-remote)
+					status_text="${COLOR_DIM}- no remote${COLOR_RESET}"
+					sync_text="-"
+					;;
+			esac
+
+			# Выводим строку таблицы
+			printf "%-16s %-10s %-24s %-8s %s\n" \
+				"$module_name" \
+				"$branch" \
+				"$status_text" \
+				"$changes" \
+				"$sync_text"
 		done
 
-		if [ -n "$table_data" ]; then
-			printf "%s\n" "$table_data" | print_table 20
-		fi
-
 		printf "\n"
-		log_info "Используйте: make modules pull - для инициализации и обновления"
+		log_info "Легенда:"
+		printf "  %s✓ synced%s     - синхронизирован с remote\n" "$COLOR_SUCCESS" "$COLOR_RESET"
+		printf "  %s⚠ ahead%s      - есть непушнутые коммиты\n" "$COLOR_WARNING" "$COLOR_RESET"
+		printf "  %s⚠ behind%s     - есть необпулленные коммиты\n" "$COLOR_WARNING" "$COLOR_RESET"
+		printf "  %s⚠ diverged%s   - есть изменения в обоих направлениях\n" "$COLOR_ERROR" "$COLOR_RESET"
+		printf "  yes/-        - наличие uncommitted changes\n"
+		printf "  N↑           - N коммитов ahead (непушнуто)\n"
+		printf "  N↓           - N коммитов behind (необпуллено)\n"
+		printf "\n"
+		log_info "Используйте: make modules pull - для синхронизации"
+		log_info "Используйте: make modules push - для отправки изменений"
 		;;
 
 	*)

@@ -473,3 +473,103 @@ module_convert() {
 		log_info "Не забудьте закоммитить изменения в workspace"
 	fi
 }
+
+# ===================================
+# Функции проверки статуса синхронизации
+# ===================================
+
+# Проверить наличие uncommitted changes
+# Параметр: $1 - путь к модулю (абсолютный или относительный)
+# Возвращает: 0 если есть изменения, 1 если нет
+has_uncommitted_changes() {
+	local module_path="$1"
+
+	cd "$module_path" || return 1
+
+	# Проверяем staged и unstaged changes
+	if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+		cd "$WORKSPACE_ROOT" || true
+		return 0
+	fi
+
+	# Проверяем untracked files
+	if [ -n "$(git ls-files --others --exclude-standard 2>/dev/null)" ]; then
+		cd "$WORKSPACE_ROOT" || true
+		return 0
+	fi
+
+	cd "$WORKSPACE_ROOT" || true
+	return 1
+}
+
+# Подсчитать количество коммитов ahead (непушнутых)
+# Параметр: $1 - путь к модулю (абсолютный или относительный)
+# Возвращает: количество коммитов или 0
+count_commits_ahead() {
+	local module_path="$1"
+
+	cd "$module_path" || return 1
+
+	# Проверяем наличие upstream
+	if ! git rev-parse @{u} >/dev/null 2>&1; then
+		cd "$WORKSPACE_ROOT" || true
+		echo "0"
+		return
+	fi
+
+	count=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo "0")
+	cd "$WORKSPACE_ROOT" || true
+	echo "$count"
+}
+
+# Подсчитать количество коммитов behind (необпулленных)
+# Параметр: $1 - путь к модулю (абсолютный или относительный)
+# Возвращает: количество коммитов или 0
+count_commits_behind() {
+	local module_path="$1"
+
+	cd "$module_path" || return 1
+
+	# Проверяем наличие upstream
+	if ! git rev-parse @{u} >/dev/null 2>&1; then
+		cd "$WORKSPACE_ROOT" || true
+		echo "0"
+		return
+	fi
+
+	count=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo "0")
+	cd "$WORKSPACE_ROOT" || true
+	echo "$count"
+}
+
+# Получить статус синхронизации
+# Параметр: $1 - путь к модулю (абсолютный или относительный)
+# Возвращает: synced|ahead|behind|diverged|no-remote
+get_sync_status() {
+	local module_path="$1"
+
+	cd "$module_path" || return 1
+
+	# Проверяем наличие upstream
+	if ! git rev-parse @{u} >/dev/null 2>&1; then
+		cd "$WORKSPACE_ROOT" || true
+		echo "no-remote"
+		return
+	fi
+
+	local ahead behind
+	ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo "0")
+	behind=$(git rev-list --count HEAD..@{u} 2>/dev/null || echo "0")
+
+	cd "$WORKSPACE_ROOT" || true
+
+	if [ "$ahead" -gt 0 ] && [ "$behind" -gt 0 ]; then
+		echo "diverged"
+	elif [ "$ahead" -gt 0 ]; then
+		echo "ahead"
+	elif [ "$behind" -gt 0 ]; then
+		echo "behind"
+	else
+		echo "synced"
+	fi
+}

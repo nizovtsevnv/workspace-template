@@ -330,14 +330,14 @@ case "$BULK_CMD" in
 
 	status)
 		# Проверяем workspace status
-		log_section "Workspace status"
+		log_section "Статус воркспэйса"
 		printf "\n"
 
 		# Получаем текущую ветку
 		current_branch=$(git branch --show-current 2>/dev/null || echo "detached")
 
 		# Fetch для получения актуальной информации о remote (тихо)
-		log_info "Получение информации о remote..."
+		log_info "Получение информации с сервера..."
 		git fetch --quiet 2>/dev/null || true
 
 		# Проверяем статус синхронизации workspace
@@ -353,43 +353,43 @@ case "$BULK_CMD" in
 		workspace_behind=$(count_commits_behind "$WORKSPACE_ROOT")
 
 		# Форматируем вывод workspace status
-		printf "  Branch: %s\n" "$current_branch"
+		printf "  Ветка: %s\n" "$current_branch"
 
 		case "$workspace_sync" in
 			synced)
-				printf "  Status: ${COLOR_SUCCESS}✓ synced with origin/%s${COLOR_RESET}\n" "$current_branch"
+				printf "  Статус: ${COLOR_SUCCESS}✓ синхронизирован с origin/%s${COLOR_RESET}\n" "$current_branch"
 				;;
 			ahead)
-				printf "  Status: ${COLOR_WARNING}⚠ ahead${COLOR_RESET} (%s коммитов не отправлено)\n" "$workspace_ahead"
+				printf "  Статус: ${COLOR_WARNING}⚠ %s↑ коммитов не отправлено${COLOR_RESET}\n" "$workspace_ahead"
 				;;
 			behind)
-				printf "  Status: ${COLOR_WARNING}⚠ behind${COLOR_RESET} (%s коммитов не получено)\n" "$workspace_behind"
+				printf "  Статус: ${COLOR_WARNING}⚠ %s↓ коммитов не получено${COLOR_RESET}\n" "$workspace_behind"
 				;;
 			diverged)
-				printf "  Status: ${COLOR_ERROR}⚠ diverged${COLOR_RESET} (%s↑ %s↓)\n" "$workspace_ahead" "$workspace_behind"
+				printf "  Статус: ${COLOR_ERROR}⚠ %s↑ коммитов не отправлено и %s↓ не получено${COLOR_RESET}\n" "$workspace_ahead" "$workspace_behind"
 				;;
 			no-remote)
-				printf "  Status: ${COLOR_DIM}- no remote tracking${COLOR_RESET}\n"
+				printf "  Статус: ${COLOR_DIM}- не отслеживается${COLOR_RESET}\n"
 				;;
 		esac
 
-		printf "  Local changes: %s\n" "$workspace_has_changes"
+		printf "  Изменения вне коммитов: %s\n" "$workspace_has_changes"
 		printf "\n"
 
 		# Получаем список всех субмодулей
 		submodules=$(get_all_submodules)
 
 		if [ -z "$submodules" ]; then
-			log_warning "Субмодули не найдены в .gitmodules"
+			log_info "В проекте нет Git-субмодулей"
 			exit 0
 		fi
 
-		log_section "Статус субмодулей"
+		log_section "Статус модулей"
 		printf "\n"
 
 		# Заголовок таблицы
 		printf "${COLOR_DIM}%-16s %-10s %-10s %-35s %s${COLOR_RESET}\n" \
-			"MODULE" "BRANCH" "SYNC" "STATUS" "CHANGES"
+			"Модуль" "Ветка" "Вне коммитов" "Коммиты" "Статус"
 
 		# Формируем данные для каждого субмодуля
 		for module_path in $submodules; do
@@ -402,8 +402,8 @@ case "$BULK_CMD" in
 					"$module_name" \
 					"$branch" \
 					"-" \
-					"не инициализирован" \
-					"-"
+					"-" \
+					"не инициализирован"
 				continue
 			fi
 
@@ -419,7 +419,7 @@ case "$BULK_CMD" in
 			behind=$(count_commits_behind "$module_path_abs")
 
 			if has_uncommitted_changes "$module_path_abs"; then
-				changes="есть незакоммиченные изменения"
+				changes="есть"
 			else
 				changes="-"
 			fi
@@ -429,38 +429,30 @@ case "$BULK_CMD" in
 			case "$sync_status" in
 				synced)
 					printf "%-16s %-10s %-10s ${COLOR_SUCCESS}%-35s${COLOR_RESET} %s\n" \
-						"$module_name" "$branch" "-" "синхронизировано" "$changes"
+						"$module_name" "$branch" "$changes" "-" "синхронизировано"
 					;;
 				ahead)
 					printf "%-16s %-10s %-10s ${COLOR_WARNING}%-35s${COLOR_RESET} %s\n" \
-						"$module_name" "$branch" "${ahead}↑" "требуется make modules push" "$changes"
+						"$module_name" "$branch" "$changes" "${ahead}↑" "make modules push"
 					;;
 				behind)
 					printf "%-16s %-10s %-10s ${COLOR_WARNING}%-35s${COLOR_RESET} %s\n" \
-						"$module_name" "$branch" "${behind}↓" "требуется make modules pull" "$changes"
+						"$module_name" "$branch" "$changes" "${behind}↓" "make modules pull"
 					;;
 				diverged)
 					printf "%-16s %-10s %-10s ${COLOR_ERROR}%-35s${COLOR_RESET} %s\n" \
-						"$module_name" "$branch" "${ahead}↑${behind}↓" "требуется make modules sync" "$changes"
+						"$module_name" "$branch" "$changes" "${ahead}↑${behind}↓" "make modules sync"
 					;;
 				no-remote)
 					printf "%-16s %-10s %-10s ${COLOR_DIM}%-35s${COLOR_RESET} %s\n" \
-						"$module_name" "$branch" "-" "нет remote" "$changes"
+						"$module_name" "$branch" "$changes" "-" "не отслеживается"
 					;;
 			esac
 		done
-
-		printf "\n"
-		log_info "Команды:"
-		printf "  make modules pull  - получить изменения из remote\n"
-		printf "  make modules push  - отправить изменения в remote\n"
-		printf "  make modules sync  - синхронизировать в обоих направлениях\n"
 		;;
 
 	sync)
-		log_section "Синхронизация workspace и субмодулей"
-		printf "\n"
-		log_info "Выполняется pull + push для разрешения diverged состояния"
+		log_section "Синхронизация workspace и субмодулей с удалёнными Git-репозиториями"
 		printf "\n"
 
 		# Сначала pull

@@ -424,6 +424,17 @@ case "$BULK_CMD" in
 				changes="-"
 			fi
 
+			# Проверяем синхронизацию с workspace (HEAD субмодуля vs запись в workspace)
+			expected_commit=$(git ls-tree HEAD "$module_path" 2>/dev/null | awk '{print $3}')
+			actual_commit=$(cd "$module_path_abs" && git rev-parse HEAD 2>/dev/null)
+
+			if [ -n "$expected_commit" ] && [ -n "$actual_commit" ] && [ "$expected_commit" != "$actual_commit" ]; then
+				# Субмодуль не синхронизирован с workspace
+				printf "%-16s %-10s %-10s ${COLOR_WARNING}%-35s${COLOR_RESET} %s\n" \
+					"$module_name" "$branch" "$changes" "workspace" "требуется git add и commit"
+				continue
+			fi
+
 			# Выводим строку таблицы с цветами
 			# Формат: MODULE BRANCH SYNC STATUS CHANGES
 			case "$sync_status" in

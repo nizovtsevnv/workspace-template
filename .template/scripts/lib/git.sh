@@ -72,7 +72,8 @@ require_clean_working_tree() {
 	fi
 
 	# Проверяем другие изменения (информационно, не блокируем)
-	other_changes=$(git status --porcelain 2>/dev/null | grep -v -E "^.. (\.template/|Makefile|\.editorconfig|\.gitignore|doc/development/)" || true)
+	# Игнорируем изменения в modules/ (ссылки на субмодули)
+	other_changes=$(git status --porcelain 2>/dev/null | grep -v -E "^.. (\.template/|Makefile|\.editorconfig|\.gitignore|doc/development/|modules/)" || true)
 
 	if [ -n "$other_changes" ]; then
 		# Загружаем UI библиотеку для вывода (если еще не загружена)

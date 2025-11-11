@@ -18,10 +18,8 @@ else
 	. "$LIB_DIR/workspace.sh"
 fi
 
-# Определяем container runtime из окружения или используем podman по умолчанию
 # CONTAINER_RUNTIME должен быть определён через init.sh
-CONTAINER_RUNTIME="${CONTAINER_RUNTIME:-podman}"
-readonly CONTAINER_RUNTIME
+# Не устанавливаем значение по умолчанию здесь, чтобы не блокировать автоопределение в init.sh
 
 # ===================================
 # Функция сборки образа стека

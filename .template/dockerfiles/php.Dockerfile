@@ -22,6 +22,3 @@ ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 # Рабочая директория соответствует монтированию workspace
 WORKDIR /workspace
-
-# Entrypoint позволяет запускать любые команды
-ENTRYPOINT ["/bin/sh"]

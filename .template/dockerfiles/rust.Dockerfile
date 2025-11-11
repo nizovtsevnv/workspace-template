@@ -10,6 +10,3 @@ RUN apk add --no-cache musl-dev \
 
 # Рабочая директория соответствует монтированию workspace
 WORKDIR /workspace
-
-# Entrypoint позволяет запускать любые команды
-ENTRYPOINT ["/bin/sh"]

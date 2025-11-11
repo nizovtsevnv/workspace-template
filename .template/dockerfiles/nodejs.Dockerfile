@@ -11,6 +11,3 @@ RUN npm install -g --no-cache bun pnpm \
 
 # Рабочая директория соответствует монтированию workspace
 WORKDIR /workspace
-
-# Entrypoint позволяет запускать любые команды
-ENTRYPOINT ["/bin/sh"]

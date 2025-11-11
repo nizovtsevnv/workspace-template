@@ -67,7 +67,11 @@ require_clean_working_tree() {
 		log_info "Закоммитьте или stash их перед обновлением"
 		printf "\n"
 		log_info "Изменённые файлы шаблона:"
-		git status --short -- $template_files
+		# shellcheck disable=SC2086
+		git status --short -- $template_files 2>/dev/null | while IFS= read -r line; do
+			printf "  %s\n" "$line"
+		done
+		printf "\n"
 		return 1
 	fi
 

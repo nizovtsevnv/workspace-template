@@ -80,8 +80,12 @@ _run_stack_generic() {
 	shift 4
 	cmd="$*"
 
-	# Проверяем наличие инструмента на хосте
-	if command -v "$host_command" >/dev/null 2>&1; then
+	# Извлекаем первое слово команды для проверки
+	# Это реальная команда которая будет выполняться (npm, bun, composer, etc.)
+	actual_command=$(echo "$cmd" | awk '{print $1}')
+
+	# Проверяем наличие реальной команды на хосте
+	if command -v "$actual_command" >/dev/null 2>&1; then
 		(cd "$workdir" && eval "$cmd")
 		return $?
 	fi

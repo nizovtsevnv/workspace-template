@@ -49,20 +49,41 @@ show_changelog() {
 		log_info "(changelog недоступен)"
 }
 
-# Проверить наличие uncommitted изменений
-# Возвращает: 0 если нет изменений, 1 если есть
+# Проверить наличие незакоммиченных изменений в файлах шаблона
+# Возвращает: 0 если нет изменений в файлах шаблона, 1 если есть
 # Использование: if ! require_clean_working_tree; then ...
 require_clean_working_tree() {
-	if ! git diff-index --quiet HEAD -- 2>/dev/null; then
+	# Файлы и директории, управляемые шаблоном
+	# При обновлении шаблона изменяются только эти файлы
+	template_files=".template/ Makefile .editorconfig .gitignore doc/development/"
+
+	# Проверяем изменения только в файлах шаблона
+	if ! git diff-index --quiet HEAD -- $template_files 2>/dev/null; then
 		# Загружаем UI библиотеку для вывода (если еще не загружена)
 		# SCRIPT_DIR должен быть определён через init.sh перед загрузкой библиотек
 		. "${SCRIPT_DIR:?SCRIPT_DIR не определён}/lib/loader.sh"
 		load_lib "ui" "log_error"
-		log_error "Есть незакоммиченные изменения!"
+		log_error "Есть незакоммиченные изменения в файлах шаблона!"
 		log_info "Закоммитьте или stash их перед обновлением"
-		git status --short
+		printf "\n"
+		log_info "Изменённые файлы шаблона:"
+		git status --short -- $template_files
 		return 1
 	fi
+
+	# Проверяем другие изменения (информационно, не блокируем)
+	other_changes=$(git status --porcelain 2>/dev/null | grep -v -E "^.. (\.template/|Makefile|\.editorconfig|\.gitignore|doc/development/)" || true)
+
+	if [ -n "$other_changes" ]; then
+		# Загружаем UI библиотеку для вывода (если еще не загружена)
+		. "${SCRIPT_DIR:?SCRIPT_DIR не определён}/lib/loader.sh"
+		load_lib "ui" "log_info"
+		printf "\n"
+		log_info "В проекте есть другие незакоммиченные изменения (не мешают обновлению):"
+		echo "$other_changes"
+		printf "\n"
+	fi
+
 	return 0
 }
 

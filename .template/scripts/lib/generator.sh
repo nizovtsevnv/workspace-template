@@ -114,6 +114,7 @@ run_generator() {
 	# -e: передача переменных окружения
 	# shellcheck disable=SC2086
 	$CONTAINER_RUNTIME run --rm \
+		--user "$(id -u):$(id -g)" \
 		-v "$workspace_root:/workspace" \
 		$extra_mounts \
 		-w /workspace \
@@ -179,6 +180,7 @@ run_generator_interactive() {
 	# -e: передача переменных окружения
 	# shellcheck disable=SC2086
 	$CONTAINER_RUNTIME run -it --rm \
+		--user "$(id -u):$(id -g)" \
 		-v "$workspace_root:/workspace" \
 		$extra_mounts \
 		-w /workspace \

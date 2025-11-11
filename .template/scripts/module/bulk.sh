@@ -391,7 +391,7 @@ case "$BULK_CMD" in
 		printf "\n"
 
 		# Определяем максимальную длину имени модуля для правильного выравнивания
-		max_module_len=16
+		max_module_len=10
 		for module_path in $submodules; do
 			module_name=$(basename "$module_path")
 			module_len=${#module_name}
@@ -403,8 +403,7 @@ case "$BULK_CMD" in
 		max_module_len=$((max_module_len + 2))
 
 		# Заголовок таблицы
-		printf "${COLOR_DIM}%-${max_module_len}s %-12s %-16s %-10s %s${COLOR_RESET}\n" \
-			"Модуль" "Ветка" "Вне коммитов" "Коммиты" "Статус"
+		printf "${COLOR_DIM}%-${max_module_len}s       Ветка        Вне коммитов     Коммиты    Статус${COLOR_RESET}\n" "Модуль"
 
 		# Формируем данные для каждого субмодуля
 		for module_path in $submodules; do

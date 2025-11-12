@@ -403,7 +403,7 @@ case "$BULK_CMD" in
 		max_module_len=$((max_module_len + 2))
 
 		# Заголовок таблицы
-		printf "${COLOR_DIM}%-${max_module_len}s       Ветка        Вне коммитов     Коммиты    Статус${COLOR_RESET}\n" "Модуль"
+		printf "${COLOR_DIM}%-${max_module_len}s       Ветка        Вне коммитов     Коммиты      Статус${COLOR_RESET}\n" "Модуль"
 
 		# Формируем данные для каждого субмодуля
 		for module_path in $submodules; do

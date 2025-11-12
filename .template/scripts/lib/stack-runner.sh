@@ -18,6 +18,15 @@ else
 	. "$LIB_DIR/workspace.sh"
 fi
 
+# Загружаем UI библиотеку для is_tty и логирования
+if [ -n "$WORKSPACE_ROOT" ] && [ -f "$WORKSPACE_ROOT/.template/scripts/lib/ui.sh" ]; then
+	. "$WORKSPACE_ROOT/.template/scripts/lib/ui.sh"
+elif [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/lib/ui.sh" ]; then
+	. "$SCRIPT_DIR/lib/ui.sh"
+elif [ -n "$LIB_DIR" ] && [ -f "$LIB_DIR/ui.sh" ]; then
+	. "$LIB_DIR/ui.sh"
+fi
+
 # CONTAINER_RUNTIME должен быть определён через init.sh
 # Не устанавливаем значение по умолчанию здесь, чтобы не блокировать автоопределение в init.sh
 
@@ -206,6 +215,72 @@ check_stack_versions() {
 	done
 
 	printf "\n"
+}
+
+# ===================================
+# Функция интерактивного shell
+# ===================================
+
+# Запустить интерактивный shell в контейнере стека
+# Параметры:
+#   $1 - стек (nodejs, php, python, rust, c, zig)
+#   $2 - рабочая директория (абсолютный путь)
+# Использование: run_interactive_shell "nodejs" "/path/to/module"
+run_interactive_shell() {
+	stack="$1"
+	workdir_abs="$2"
+
+	# Проверка TTY
+	if ! is_tty; then
+		log_error "Интерактивный shell требует TTY"
+		log_info "Используйте: make <module> sh < /dev/tty"
+		return 1
+	fi
+
+	# Определяем образ контейнера
+	container_image="workspace-stack-$stack"
+
+	# Получаем workspace root
+	workspace_root=$(get_workspace_root) || return 1
+
+	# Убедиться что образ существует (автосборка)
+	_ensure_stack_image "$stack" || return 1
+
+	# Определяем путь внутри контейнера и дополнительные монтирования
+	container_workdir=""
+	extra_mounts=""
+	case "$workdir_abs" in
+		"$workspace_root"*)
+			# Внутри workspace - преобразуем в путь контейнера
+			container_workdir="/workspace${workdir_abs#$workspace_root}"
+			;;
+		*)
+			# Вне workspace - монтируем отдельно
+			extra_mounts="-v $workdir_abs:$workdir_abs"
+			container_workdir="$workdir_abs"
+			;;
+	esac
+
+	log_section "Shell в контейнере $container_image"
+	log_info "Рабочая директория: $container_workdir"
+	printf "\n"
+
+	# Запускаем интерактивный shell с флагами -it
+	# shellcheck disable=SC2086
+	$CONTAINER_RUNTIME run --rm -it \
+		--network host \
+		--user "$(id -u):$(id -g)" \
+		-v "$workspace_root:/workspace" \
+		$extra_mounts \
+		-w "$container_workdir" \
+		-e "HOST_UID=$(id -u)" \
+		-e "HOST_GID=$(id -g)" \
+		-e "HOME=/tmp" \
+		-e "npm_config_cache=/tmp/.npm" \
+		-e "YARN_CACHE_FOLDER=/tmp/.yarn-cache" \
+		-e "BUN_INSTALL_CACHE_DIR=/tmp/.bun-cache" \
+		"$container_image" \
+		sh
 }
 
 # ===================================

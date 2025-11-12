@@ -82,6 +82,20 @@ show_module_help() {
 		printf "make %s convert<COL>Конвертировать в git submodule\n" "$MODULE_NAME" | print_table 40
 	fi
 
+	# Команда интерактивного shell (если есть стеки)
+	if [ -n "$module_stacks" ]; then
+		# Показываем основную команду sh
+		printf "make %s sh<COL>Запустить shell в контейнере стека модуля\n" "$MODULE_NAME" | print_table 40
+
+		# Если несколько стеков - показываем как выбрать конкретный
+		stack_count=$(echo "$module_stacks" | wc -w)
+		if [ "$stack_count" -gt 1 ]; then
+			# Форматируем список стеков для отображения
+			stack_list=$(echo "$module_stacks" | sed 's/ /, /g')
+			printf "                                        Доступные стеки: %s\n" "$stack_list"
+		fi
+	fi
+
 	# Команды установки зависимостей (определяем по lock-файлам)
 	for tech in $MODULE_TECH; do
 		case "$tech" in

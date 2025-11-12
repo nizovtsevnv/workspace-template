@@ -76,6 +76,48 @@ if [ -z "$MODULE_CMD" ] || [ "$MODULE_CMD" = "help" ]; then
 fi
 
 # ===================================
+# Специальная обработка команды sh
+# ===================================
+# Запуск интерактивного shell в контейнере стека
+
+if [ "$MODULE_CMD" = "sh" ] || echo "$MODULE_CMD" | grep -q "^sh:"; then
+	# Проверяем наличие стеков в модуле
+	module_stacks=$(detect_module_stack "$MODULE_PATH")
+	if [ -z "$module_stacks" ]; then
+		log_error "Не найдены технологические стеки в модуле '$MODULE_NAME'"
+		log_info "Команда sh доступна только для модулей с определёнными стеками"
+		exit 1
+	fi
+
+	# Определяем целевой стек
+	if echo "$MODULE_CMD" | grep -q "^sh:"; then
+		# Явно указан стек: sh:nodejs, sh:python и т.д.
+		requested_stack=$(echo "$MODULE_CMD" | sed 's/^sh://')
+
+		# Проверка что стек доступен в модуле
+		if ! echo "$module_stacks" | grep -q "$requested_stack"; then
+			log_error "Стек '$requested_stack' не найден в модуле '$MODULE_NAME'"
+			# Форматируем список стеков для отображения
+			stack_list=$(echo "$module_stacks" | sed 's/ /, /g')
+			log_info "Доступные стеки: $stack_list"
+			exit 1
+		fi
+		target_stack="$requested_stack"
+	else
+		# Автоматическое определение: берём первую технологию (primary_tech)
+		target_stack=$(echo "$module_stacks" | awk '{print $1}')
+	fi
+
+	# Получаем абсолютный путь к модулю
+	MODULE_PATH_ABS="$WORKSPACE_ROOT/$MODULE_PATH"
+
+	# Запуск интерактивного shell
+	set +e  # Отключаем -e для корректной обработки выхода из shell
+	run_interactive_shell "$target_stack" "$MODULE_PATH_ABS"
+	exit $?
+fi
+
+# ===================================
 # Выполнение команды
 # ===================================
 # Система приоритетов: Makefile > PM scripts > Bin commands > Shell

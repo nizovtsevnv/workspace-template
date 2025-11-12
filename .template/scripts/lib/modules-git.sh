@@ -174,6 +174,10 @@ module_smart_pull() {
 		return 1
 	fi
 
+	# Получаем информацию о новом коммите для вывода
+	commit_hash=$(git rev-parse --short=7 HEAD 2>/dev/null)
+	commit_msg=$(git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+
 	# Возвращаемся в workspace root
 	cd "$WORKSPACE_ROOT" || return 1
 
@@ -181,7 +185,11 @@ module_smart_pull() {
 	log_info "Обновление ссылки в workspace..."
 	git add "$module_path"
 
-	log_success "Модуль $module_name успешно обновлён"
+	if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
+		log_success "Модуль $module_name обновлён до $commit_hash ($commit_msg)"
+	else
+		log_success "Модуль $module_name успешно обновлён"
+	fi
 	log_info "Не забудьте закоммитить изменения в workspace:"
 	printf "  %s\n" "git commit -m \"chore: update $module_name submodule\""
 }

@@ -33,6 +33,25 @@ fi
 # Функции
 # ===================================
 
+# Получить компактную информацию о коммите (хэш + дата)
+# Параметр: $1 - путь к модулю (абсолютный)
+# Возвращает: "abc1234 (2 days ago)" или "-"
+get_commit_info_compact() {
+	module_path="$1"
+	cd "$module_path" || return 1
+
+	commit_hash=$(git rev-parse --short=7 HEAD 2>/dev/null)
+	commit_date=$(git log -1 --format=%cr HEAD 2>/dev/null)
+
+	cd "$WORKSPACE_ROOT" || true
+
+	if [ -n "$commit_hash" ] && [ -n "$commit_date" ]; then
+		echo "$commit_hash ($commit_date)"
+	else
+		echo "-"
+	fi
+}
+
 # Получить список всех субмодулей из .gitmodules
 get_all_submodules() {
 	if [ ! -f "$WORKSPACE_ROOT/.gitmodules" ]; then
@@ -161,7 +180,15 @@ case "$BULK_CMD" in
 
 				log_info "Обновление $module_name..."
 				if module_smart_pull_quiet "$module_name" "$module_path"; then
-					log_success "$module_name обновлен"
+					# Получаем информацию о новом коммите
+					commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
+					commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+
+					if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
+						log_success "$module_name обновлён до $commit_hash ($commit_msg)"
+					else
+						log_success "$module_name обновлён"
+					fi
 					updated=$((updated + 1))
 				else
 					failed=$((failed + 1))
@@ -244,7 +271,15 @@ case "$BULK_CMD" in
 			log_info "Отправка $module_name..."
 
 			if module_smart_push "$module_name" "$module_path"; then
-				log_success "$module_name отправлен"
+				# Получаем информацию о последнем коммите
+				commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
+				commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+
+				if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
+					log_success "$module_name отправлен ($commit_hash: $commit_msg)"
+				else
+					log_success "$module_name отправлен"
+				fi
 				pushed=$((pushed + 1))
 			else
 				log_error "Не удалось отправить $module_name"
@@ -454,8 +489,9 @@ case "$BULK_CMD" in
 			# Формат: MODULE BRANCH SYNC STATUS CHANGES
 			case "$sync_status" in
 				synced)
+					commit_info=$(get_commit_info_compact "$module_path_abs")
 					printf "%-${max_module_len}s %-12s %-16s %-12s ${COLOR_SUCCESS}%s${COLOR_RESET}\n" \
-						"$module_name" "$branch" "$changes" "-" "синхронизировано"
+						"$module_name" "$branch" "$changes" "-" "$commit_info"
 					;;
 				ahead)
 					printf "%-${max_module_len}s %-12s %-16s %-12s ${COLOR_WARNING}%s${COLOR_RESET}\n" \
@@ -559,8 +595,16 @@ case "$BULK_CMD" in
 				# Auto-commit uncommitted changes
 				if git add -A && git commit -m "chore: sync changes" 2>&1; then
 					if git push origin "$(get_submodule_branch "$module_path")" 2>&1; then
+						# Получаем информацию о последнем коммите
+						commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
+						commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+
+						if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
+							log_success "$module_name отправлен ($commit_hash: $commit_msg)"
+						else
+							log_success "$module_name отправлен"
+						fi
 						pushed=$((pushed + 1))
-						log_success "$module_name отправлен"
 					else
 						failed=$((failed + 1))
 						log_error "Не удалось отправить $module_name"
@@ -572,8 +616,16 @@ case "$BULK_CMD" in
 				if [ "$ahead" -gt 0 ]; then
 					log_info "Отправка $module_name ($ahead коммитов)..."
 					if git push origin "$(get_submodule_branch "$module_path")" 2>&1; then
+						# Получаем информацию о последнем коммите
+						commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
+						commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+
+						if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
+							log_success "$module_name отправлен ($commit_hash: $commit_msg)"
+						else
+							log_success "$module_name отправлен"
+						fi
 						pushed=$((pushed + 1))
-						log_success "$module_name отправлен"
 					else
 						failed=$((failed + 1))
 						log_error "Не удалось отправить $module_name"

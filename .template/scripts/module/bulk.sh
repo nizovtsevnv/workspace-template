@@ -539,7 +539,15 @@ case "$BULK_CMD" in
 				log_success "Workspace актуален"
 			else
 				if git pull --rebase origin "$(git branch --show-current)" 2>&1; then
-					log_success "Workspace обновлен"
+					# Получаем информацию о новом коммите
+					commit_hash=$(git rev-parse --short=7 HEAD 2>/dev/null)
+					commit_msg=$(git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+
+					if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
+						log_success "Workspace обновлён до $commit_hash ($commit_msg)"
+					else
+						log_success "Workspace обновлён"
+					fi
 				else
 					log_error "Не удалось обновить workspace"
 					log_info "Разрешите конфликты и попробуйте снова"
@@ -561,9 +569,16 @@ case "$BULK_CMD" in
 					continue
 				fi
 
-				log_info "Синхронизация $module_name..."
 				if module_smart_pull_quiet "$module_name" "$module_path"; then
-					log_success "$module_name обновлен"
+					# Получаем информацию о новом коммите
+					commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
+					commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+
+					if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
+						log_success "$module_name обновлён до $commit_hash ($commit_msg)"
+					else
+						log_success "$module_name обновлён"
+					fi
 				else
 					log_warning "Не удалось обновить $module_name"
 				fi

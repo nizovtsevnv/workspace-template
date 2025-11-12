@@ -178,10 +178,16 @@ case "$BULK_CMD" in
 				# Субмодуль уже инициализирован - обновляем
 				initialized=$((initialized + 1))
 
+				# Показываем прогресс
+				log_progress "Обновление $module_name..."
+
 				# Сохраняем текущий коммит для проверки изменений
 				old_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
 
 				if module_smart_pull_quiet "$module_name" "$module_path"; then
+					# Очищаем строку прогресса
+					clear_progress
+
 					# Получаем информацию о новом коммите
 					new_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
 					commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
@@ -197,6 +203,7 @@ case "$BULK_CMD" in
 					fi
 					updated=$((updated + 1))
 				else
+					clear_progress
 					failed=$((failed + 1))
 					log_error "Не удалось обновить $module_name"
 				fi
@@ -586,10 +593,16 @@ case "$BULK_CMD" in
 					continue
 				fi
 
+				# Показываем прогресс
+				log_progress "Синхронизация $module_name..."
+
 				# Сохраняем текущий коммит для проверки изменений
 				old_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
 
 				if module_smart_pull_quiet "$module_name" "$module_path"; then
+					# Очищаем строку прогресса
+					clear_progress
+
 					# Получаем информацию о новом коммите
 					new_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
 					commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
@@ -604,6 +617,7 @@ case "$BULK_CMD" in
 						log_success "$module_name обновлён"
 					fi
 				else
+					clear_progress
 					log_warning "Не удалось обновить $module_name"
 				fi
 			done

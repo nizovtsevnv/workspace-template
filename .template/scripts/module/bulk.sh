@@ -33,7 +33,7 @@ fi
 # Функции
 # ===================================
 
-# Получить компактную информацию о коммите (хэш + дата)
+# Получить компактную информацию о коммите (хэш + относительная дата)
 # Параметр: $1 - путь к модулю (абсолютный)
 # Возвращает: "abc1234 (2 days ago)" или "-"
 get_commit_info_compact() {
@@ -178,14 +178,20 @@ case "$BULK_CMD" in
 				# Субмодуль уже инициализирован - обновляем
 				initialized=$((initialized + 1))
 
-				log_info "Обновление $module_name..."
+				# Сохраняем текущий коммит для проверки изменений
+				old_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
+
 				if module_smart_pull_quiet "$module_name" "$module_path"; then
 					# Получаем информацию о новом коммите
-					commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
-					commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+					new_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
+					commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
 
-					if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
-						log_success "$module_name обновлён до $commit_hash ($commit_msg)"
+					if [ "$commit_info" != "-" ]; then
+						if [ "$old_commit" = "$new_commit" ]; then
+							log_success "$module_name: актуальный коммит $commit_info"
+						else
+							log_success "$module_name: загружены коммиты до $commit_info"
+						fi
 					else
 						log_success "$module_name обновлён"
 					fi
@@ -258,25 +264,31 @@ case "$BULK_CMD" in
 			cd "$WORKSPACE_ROOT/$module_path" || continue
 
 			if git diff-index --quiet HEAD -- 2>/dev/null; then
-				# Нет изменений - пропускаем
-				log_info "$module_name: нет изменений"
-				skipped=$((skipped + 1))
-				cd "$WORKSPACE_ROOT" || return
-				continue
+				# Нет uncommitted изменений - проверяем есть ли коммиты для push
+				ahead=$(git rev-list --count @{u}..HEAD 2>/dev/null || echo "0")
+				if [ "$ahead" -eq 0 ]; then
+					# Нет изменений - показываем актуальный коммит
+					cd "$WORKSPACE_ROOT" || return
+					commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
+					if [ "$commit_info" != "-" ]; then
+						log_success "$module_name: актуальный коммит $commit_info"
+					else
+						log_info "$module_name: нет изменений"
+					fi
+					skipped=$((skipped + 1))
+					continue
+				fi
 			fi
 
 			cd "$WORKSPACE_ROOT" || return
 
 			# Есть изменения - выполняем push
-			log_info "Отправка $module_name..."
-
 			if module_smart_push "$module_name" "$module_path"; then
 				# Получаем информацию о последнем коммите
-				commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
-				commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+				commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
 
-				if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
-					log_success "$module_name отправлен ($commit_hash: $commit_msg)"
+				if [ "$commit_info" != "-" ]; then
+					log_success "$module_name: выгружены коммиты до $commit_info"
 				else
 					log_success "$module_name отправлен"
 				fi
@@ -532,19 +544,24 @@ case "$BULK_CMD" in
 		if ! git fetch origin 2>/dev/null; then
 			log_warning "Не удалось получить обновления из origin"
 		else
-			LOCAL=$(git rev-parse HEAD 2>/dev/null)
+			OLD_LOCAL=$(git rev-parse HEAD 2>/dev/null)
 			REMOTE=$(git rev-parse @{u} 2>/dev/null)
 
-			if [ "$LOCAL" = "$REMOTE" ]; then
-				log_success "Workspace актуален"
+			if [ "$OLD_LOCAL" = "$REMOTE" ]; then
+				commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT")
+				if [ "$commit_info" != "-" ]; then
+					log_success "Workspace: актуальный коммит $commit_info"
+				else
+					log_success "Workspace актуален"
+				fi
 			else
 				if git pull --rebase origin "$(git branch --show-current)" 2>&1; then
 					# Получаем информацию о новом коммите
-					commit_hash=$(git rev-parse --short=7 HEAD 2>/dev/null)
-					commit_msg=$(git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+					NEW_LOCAL=$(git rev-parse HEAD 2>/dev/null)
+					commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT")
 
-					if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
-						log_success "Workspace обновлён до $commit_hash ($commit_msg)"
+					if [ "$commit_info" != "-" ]; then
+						log_success "Workspace: загружены коммиты до $commit_info"
 					else
 						log_success "Workspace обновлён"
 					fi
@@ -569,13 +586,20 @@ case "$BULK_CMD" in
 					continue
 				fi
 
+				# Сохраняем текущий коммит для проверки изменений
+				old_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
+
 				if module_smart_pull_quiet "$module_name" "$module_path"; then
 					# Получаем информацию о новом коммите
-					commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
-					commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+					new_commit=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse HEAD 2>/dev/null)
+					commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
 
-					if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
-						log_success "$module_name обновлён до $commit_hash ($commit_msg)"
+					if [ "$commit_info" != "-" ]; then
+						if [ "$old_commit" = "$new_commit" ]; then
+							log_success "$module_name: актуальный коммит $commit_info"
+						else
+							log_success "$module_name: загружены коммиты до $commit_info"
+						fi
 					else
 						log_success "$module_name обновлён"
 					fi
@@ -605,17 +629,14 @@ case "$BULK_CMD" in
 
 			# Проверяем есть ли изменения для отправки
 			if ! git diff-index --quiet HEAD -- 2>/dev/null; then
-				log_info "Отправка $module_name..."
-
 				# Auto-commit uncommitted changes
 				if git add -A && git commit -m "chore: sync changes" 2>&1; then
 					if git push origin "$(get_submodule_branch "$module_path")" 2>&1; then
 						# Получаем информацию о последнем коммите
-						commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
-						commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+						commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
 
-						if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
-							log_success "$module_name отправлен ($commit_hash: $commit_msg)"
+						if [ "$commit_info" != "-" ]; then
+							log_success "$module_name: выгружены коммиты до $commit_info"
 						else
 							log_success "$module_name отправлен"
 						fi
@@ -629,14 +650,12 @@ case "$BULK_CMD" in
 				# Проверяем unpushed commits
 				ahead=$(count_commits_ahead "$module_path_abs")
 				if [ "$ahead" -gt 0 ]; then
-					log_info "Отправка $module_name ($ahead коммитов)..."
 					if git push origin "$(get_submodule_branch "$module_path")" 2>&1; then
 						# Получаем информацию о последнем коммите
-						commit_hash=$(cd "$WORKSPACE_ROOT/$module_path" && git rev-parse --short=7 HEAD 2>/dev/null)
-						commit_msg=$(cd "$WORKSPACE_ROOT/$module_path" && git log -1 --format=%s HEAD 2>/dev/null | awk '{s=substr($0,1,50); if(length($0)>50) s=s"..."; print s}')
+						commit_info=$(get_commit_info_compact "$WORKSPACE_ROOT/$module_path")
 
-						if [ -n "$commit_hash" ] && [ -n "$commit_msg" ]; then
-							log_success "$module_name отправлен ($commit_hash: $commit_msg)"
+						if [ "$commit_info" != "-" ]; then
+							log_success "$module_name: выгружены коммиты до $commit_info"
 						else
 							log_success "$module_name отправлен"
 						fi

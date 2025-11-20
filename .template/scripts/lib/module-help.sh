@@ -38,9 +38,25 @@ show_module_help() {
 	for stack in $module_stacks; do
 		# Форматируем имена стеков
 		case "$stack" in
-			nodejs) name="Node.js" ;;
-			php) name="PHP" ;;
-			python) name="Python" ;;
+			nodejs)
+				name="Node.js"
+				# Добавляем пакетный менеджер
+				pm=$(detect_nodejs_manager "$MODULE_PATH")
+				if [ -n "$pm" ]; then
+					name="$name ($pm)"
+				fi
+				;;
+			php)
+				name="PHP"
+				;;
+			python)
+				name="Python"
+				# Добавляем пакетный менеджер
+				pm=$(detect_python_manager "$MODULE_PATH")
+				if [ -n "$pm" ] && [ "$pm" != "pip" ]; then
+					name="$name ($pm)"
+				fi
+				;;
 			rust) name="Rust" ;;
 			*) name="$stack" ;;
 		esac

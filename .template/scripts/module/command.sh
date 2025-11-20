@@ -176,6 +176,11 @@ echo "$PRIORITY_CHECKS" | while read -r check_line; do
 		# (так как subshell в stack runner не наследует cd из родительского процесса)
 		MODULE_PATH_ABS="$WORKSPACE_ROOT/$MODULE_PATH"
 
+		# Для nodejs: экспортируем пакетный менеджер для использования в stack runner
+		if [ "$primary_tech" = "nodejs" ] && [ -n "$nodejs_pm_detected" ]; then
+			export NODEJS_PM="$nodejs_pm_detected"
+		fi
+
 		# Выполняем команду через stack runner с fallback в контейнер
 		# shellcheck disable=SC2086,SC2154
 		run_stack_command "$primary_tech" "$MODULE_PATH_ABS" "$full_cmd $args_with_separator"

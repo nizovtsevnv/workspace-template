@@ -61,20 +61,68 @@ detect_module_cicd() {
 
 # Определить Node.js пакетный менеджер по lock файлам
 # Параметр: $1 - путь к модулю
-# Приоритет: bun.lockb/bun.lock > pnpm-lock.yaml > yarn.lock > package-lock.json > bun (default)
+# Логика: выбирается менеджер с самым свежим lock-файлом (по mtime)
+# Поддерживаемые: bun (bun.lockb/bun.lock), pnpm, yarn, npm
+# Default: bun
 detect_nodejs_manager() {
 	module_path="$1"
 
-	# Bun поддерживает два формата lock-файлов:
-	# - bun.lockb (бинарный, быстрый)
-	# - bun.lock (текстовый, для git-friendly diff)
-	[ -f "$module_path/bun.lockb" ] && echo "bun" && return
-	[ -f "$module_path/bun.lock" ] && echo "bun" && return
-	[ -f "$module_path/pnpm-lock.yaml" ] && echo "pnpm" && return
-	[ -f "$module_path/yarn.lock" ] && echo "yarn" && return
-	[ -f "$module_path/package-lock.json" ] && echo "npm" && return
+	# Выбираем пакетный менеджер по самому свежему lock-файлу
+	# Список: файл:менеджер
+	newest_time=0
+	detected_manager=""
 
-	echo "bun"  # default
+	# Проверяем bun.lockb
+	if [ -f "$module_path/bun.lockb" ]; then
+		mtime=$(stat -c %Y "$module_path/bun.lockb" 2>/dev/null || stat -f %m "$module_path/bun.lockb" 2>/dev/null || echo 0)
+		if [ "$mtime" -gt "$newest_time" ]; then
+			newest_time=$mtime
+			detected_manager="bun"
+		fi
+	fi
+
+	# Проверяем bun.lock
+	if [ -f "$module_path/bun.lock" ]; then
+		mtime=$(stat -c %Y "$module_path/bun.lock" 2>/dev/null || stat -f %m "$module_path/bun.lock" 2>/dev/null || echo 0)
+		if [ "$mtime" -gt "$newest_time" ]; then
+			newest_time=$mtime
+			detected_manager="bun"
+		fi
+	fi
+
+	# Проверяем pnpm-lock.yaml
+	if [ -f "$module_path/pnpm-lock.yaml" ]; then
+		mtime=$(stat -c %Y "$module_path/pnpm-lock.yaml" 2>/dev/null || stat -f %m "$module_path/pnpm-lock.yaml" 2>/dev/null || echo 0)
+		if [ "$mtime" -gt "$newest_time" ]; then
+			newest_time=$mtime
+			detected_manager="pnpm"
+		fi
+	fi
+
+	# Проверяем yarn.lock
+	if [ -f "$module_path/yarn.lock" ]; then
+		mtime=$(stat -c %Y "$module_path/yarn.lock" 2>/dev/null || stat -f %m "$module_path/yarn.lock" 2>/dev/null || echo 0)
+		if [ "$mtime" -gt "$newest_time" ]; then
+			newest_time=$mtime
+			detected_manager="yarn"
+		fi
+	fi
+
+	# Проверяем package-lock.json
+	if [ -f "$module_path/package-lock.json" ]; then
+		mtime=$(stat -c %Y "$module_path/package-lock.json" 2>/dev/null || stat -f %m "$module_path/package-lock.json" 2>/dev/null || echo 0)
+		if [ "$mtime" -gt "$newest_time" ]; then
+			newest_time=$mtime
+			detected_manager="npm"
+		fi
+	fi
+
+	# Возвращаем найденный менеджер или default
+	if [ -n "$detected_manager" ]; then
+		echo "$detected_manager"
+	else
+		echo "bun"
+	fi
 }
 
 # Определить Python пакетный менеджер по lock файлам

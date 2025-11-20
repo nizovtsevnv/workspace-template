@@ -87,14 +87,24 @@ _run_stack_generic() {
 	shift 4
 	cmd="$*"
 
-	# Извлекаем первое слово команды для проверки
-	# Это реальная команда которая будет выполняться (npm, bun, composer, etc.)
-	actual_command=$(echo "$cmd" | awk '{print $1}')
+	# Определяем команду для проверки на хосте
+	check_command=""
+	if [ "$stack_name" = "nodejs" ] && [ -n "$NODEJS_PM" ]; then
+		# Для nodejs проверяем пакетный менеджер (bun, npm, yarn, pnpm)
+		check_command="$NODEJS_PM"
+	else
+		# Для других стеков - первое слово команды
+		check_command=$(echo "$cmd" | awk '{print $1}')
+	fi
 
-	# Проверяем наличие реальной команды на хосте
-	if command -v "$actual_command" >/dev/null 2>&1; then
-		(cd "$workdir" && eval "$cmd")
-		return $?
+	# Пытаемся выполнить на хосте
+	if [ -n "$check_command" ] && command -v "$check_command" >/dev/null 2>&1; then
+		# Выполняем на хосте без subshell для правильного TTY
+		cd "$workdir" || return 1
+		eval "$cmd"
+		exit_code=$?
+		cd "$WORKSPACE_ROOT" || true
+		return $exit_code
 	fi
 
 	# Fallback: запуск через Alpine контейнер
@@ -119,9 +129,15 @@ _run_stack_generic() {
 			;;
 	esac
 
+	# Определяем нужны ли TTY флаги для интерактивных команд
+	tty_flags=""
+	if is_tty && _is_interactive_command "$cmd"; then
+		tty_flags="-it"
+	fi
+
 	# Выполняем команду в контейнере
 	# shellcheck disable=SC2086,SC2046
-	$CONTAINER_RUNTIME run --rm \
+	$CONTAINER_RUNTIME run --rm $tty_flags \
 		--network host \
 		--user "$(id -u):$(id -g)" \
 		-v "$workspace_root:/workspace" \
@@ -135,6 +151,21 @@ _run_stack_generic() {
 		-e "BUN_INSTALL_CACHE_DIR=/tmp/.bun-cache" \
 		"$container_image" \
 		sh -c "$cmd"
+}
+
+# Проверить требуется ли TTY для команды
+# Параметры: $1 - команда
+# Возвращает: 0 если интерактивная, 1 если нет
+_is_interactive_command() {
+	cmd="$1"
+
+	# Паттерны интерактивных команд (dev серверы, watch режимы, REPL)
+	case "$cmd" in
+		*" start"*|*" dev"*|*" serve"*|*" watch"*) return 0 ;;
+		*"expo start"*|*"vite"*|*"webpack-dev-server"*) return 0 ;;
+		*" repl"*|*" console"*|*" shell"*) return 0 ;;
+		*) return 1 ;;
+	esac
 }
 
 # ===================================
